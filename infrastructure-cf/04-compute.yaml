@@ -1,0 +1,290 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Stack 4: Compute Infrastructure - ECR, ECS Fargate cluster, ALB, task definitions, and services'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Environment identifier (e.g., aipos-dev, aipos-staging, aipos-prod)
+    AllowedPattern: ^[a-z0-9-]+$
+    MinLength: 3
+    MaxLength: 50
+  
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID from Network stack
+    # TODO: Use ImportValue to get from Network stack output
+  
+  PublicSubnetIds:
+    Type: CommaDelimitedList
+    Description: List of public subnet IDs from Network stack
+    # TODO: Use ImportValue to get from Network stack output
+  
+  PrivateSubnetIds:
+    Type: CommaDelimitedList
+    Description: List of private subnet IDs from Network stack
+    # TODO: Use ImportValue to get from Network stack output
+  
+  ALBSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security Group ID for ALB from Network stack
+    # TODO: Use ImportValue to get from Network stack output
+  
+  ECSSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security Group ID for ECS tasks from Network stack
+    # TODO: Use ImportValue to get from Network stack output
+  
+  CertificateArn:
+    Type: String
+    Description: ACM certificate ARN for HTTPS (must be in same region)
+    Default: ''
+  
+  DomainName:
+    Type: String
+    Description: Domain name for the application
+    Default: ''
+  
+  BackendImageTag:
+    Type: String
+    Description: Docker image tag for backend service
+    Default: latest
+  
+  FrontendImageTag:
+    Type: String
+    Description: Docker image tag for frontend service
+    Default: latest
+  
+  BackendCpu:
+    Type: String
+    Description: CPU units for backend task (256, 512, 1024, etc.)
+    Default: '512'
+    AllowedValues: ['256', '512', '1024', '2048', '4096']
+  
+  BackendMemory:
+    Type: String
+    Description: Memory for backend task in MB
+    Default: '1024'
+    AllowedValues: ['512', '1024', '2048', '4096', '8192']
+  
+  FrontendCpu:
+    Type: String
+    Description: CPU units for frontend task (256, 512, 1024, etc.)
+    Default: '256'
+    AllowedValues: ['256', '512', '1024', '2048']
+  
+  FrontendMemory:
+    Type: String
+    Description: Memory for frontend task in MB
+    Default: '512'
+    AllowedValues: ['512', '1024', '2048', '4096']
+  
+  DesiredCount:
+    Type: Number
+    Description: Desired number of tasks for each service
+    Default: 2
+    MinValue: 1
+    MaxValue: 10
+  
+  MinCapacity:
+    Type: Number
+    Description: Minimum number of tasks for auto-scaling
+    Default: 2
+    MinValue: 1
+  
+  MaxCapacity:
+    Type: Number
+    Description: Maximum number of tasks for auto-scaling
+    Default: 10
+    MinValue: 1
+
+Resources:
+  # TODO: ECR Repositories
+  # AWS::ECR::Repository (backend)
+  # - RepositoryName: !Sub '${EnvironmentName}-backend'
+  # - ImageScanningConfiguration: Enable scanning
+  # - LifecyclePolicy: Retain last N images
+  # - Tags: Name, Environment, Type (backend), ManagedBy
+  
+  # AWS::ECR::Repository (frontend)
+  # - RepositoryName: !Sub '${EnvironmentName}-frontend'
+  # - ImageScanningConfiguration: Enable scanning
+  # - LifecyclePolicy: Retain last N images
+  # - Tags: Name, Environment, Type (frontend), ManagedBy
+  
+  # TODO: ECS Cluster
+  # AWS::ECS::Cluster
+  # - ClusterName: !Sub '${EnvironmentName}-cluster'
+  # - CapacityProviders: FARGATE, FARGATE_SPOT
+  # - DefaultCapacityProviderStrategy
+  # - Tags: Name, Environment, ManagedBy
+  
+  # TODO: CloudWatch Log Groups
+  # AWS::Logs::LogGroup (backend)
+  # - LogGroupName: !Sub '/ecs/${EnvironmentName}-backend'
+  # - RetentionInDays: 7 (or 30 for prod)
+  # - Tags: Name, Environment, ManagedBy
+  
+  # AWS::Logs::LogGroup (frontend)
+  # - LogGroupName: !Sub '/ecs/${EnvironmentName}-frontend'
+  # - RetentionInDays: 7 (or 30 for prod)
+  # - Tags: Name, Environment, ManagedBy
+  
+  # TODO: Application Load Balancer
+  # AWS::ElasticLoadBalancingV2::LoadBalancer
+  # - Type: application
+  # - Scheme: internet-facing
+  # - Subnets: PublicSubnetIds
+  # - SecurityGroups: ALBSecurityGroupId
+  # - Tags: Name, Environment, ManagedBy
+  
+  # TODO: Target Groups
+  # AWS::ElasticLoadBalancingV2::TargetGroup (backend)
+  # - Port: 8000 (or backend port)
+  # - Protocol: HTTP
+  # - VpcId: VpcId
+  # - HealthCheckPath: /health or /api/health
+  # - HealthCheckProtocol: HTTP
+  # - TargetType: ip (for Fargate)
+  
+  # AWS::ElasticLoadBalancingV2::TargetGroup (frontend)
+  # - Port: 80 (or frontend port)
+  # - Protocol: HTTP
+  # - VpcId: VpcId
+  # - HealthCheckPath: /
+  # - HealthCheckProtocol: HTTP
+  # - TargetType: ip (for Fargate)
+  
+  # TODO: ALB Listeners
+  # AWS::ElasticLoadBalancingV2::Listener (HTTPS - port 443)
+  # - LoadBalancerArn: Reference to ALB
+  # - Port: 443
+  # - Protocol: HTTPS
+  # - Certificates: CertificateArn
+  # - DefaultActions: Forward to frontend target group
+  # - Rules: Route /api/* to backend target group
+  
+  # AWS::ElasticLoadBalancingV2::Listener (HTTP - port 80)
+  # - LoadBalancerArn: Reference to ALB
+  # - Port: 80
+  # - Protocol: HTTP
+  # - DefaultActions: Redirect to HTTPS
+  
+  # TODO: ECS Task Definitions
+  # AWS::ECS::TaskDefinition (backend)
+  # - Family: !Sub '${EnvironmentName}-backend'
+  # - NetworkMode: awsvpc
+  # - RequiresCompatibilities: FARGATE
+  # - Cpu: BackendCpu
+  # - Memory: BackendMemory
+  # - ContainerDefinitions:
+  #   - Name: backend
+  #   - Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${BackendRepository}:${BackendImageTag}'
+  #   - PortMappings: 8000
+  #   - Environment variables (from Secrets Manager or Parameters)
+  #   - LogConfiguration: CloudWatch Logs
+  #   - HealthCheck
+  
+  # AWS::ECS::TaskDefinition (frontend)
+  # - Family: !Sub '${EnvironmentName}-frontend'
+  # - NetworkMode: awsvpc
+  # - RequiresCompatibilities: FARGATE
+  # - Cpu: FrontendCpu
+  # - Memory: FrontendMemory
+  # - ContainerDefinitions:
+  #   - Name: frontend
+  #   - Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${FrontendRepository}:${FrontendImageTag}'
+  #   - PortMappings: 80
+  #   - LogConfiguration: CloudWatch Logs
+  #   - HealthCheck
+  
+  # TODO: ECS Services
+  # AWS::ECS::Service (backend)
+  # - ServiceName: !Sub '${EnvironmentName}-backend'
+  # - Cluster: Reference to ECS Cluster
+  # - TaskDefinition: Reference to backend task definition
+  # - DesiredCount: DesiredCount
+  # - LaunchType: FARGATE
+  # - NetworkConfiguration:
+  #   - Subnets: PrivateSubnetIds
+  #   - SecurityGroups: ECSSecurityGroupId
+  #   - AssignPublicIp: DISABLED
+  # - LoadBalancers: Reference to backend target group
+  # - Tags: Name, Environment, ManagedBy
+  
+  # AWS::ECS::Service (frontend)
+  # - ServiceName: !Sub '${EnvironmentName}-frontend'
+  # - Cluster: Reference to ECS Cluster
+  # - TaskDefinition: Reference to frontend task definition
+  # - DesiredCount: DesiredCount
+  # - LaunchType: FARGATE
+  # - NetworkConfiguration:
+  #   - Subnets: PrivateSubnetIds
+  #   - SecurityGroups: ECSSecurityGroupId
+  #   - AssignPublicIp: DISABLED
+  # - LoadBalancers: Reference to frontend target group
+  # - Tags: Name, Environment, ManagedBy
+  
+  # TODO: Auto Scaling
+  # AWS::ApplicationAutoScaling::ScalableTarget (backend)
+  # - ServiceNamespace: ecs
+  # - ScalableDimension: ecs:service:DesiredCount
+  # - ResourceId: !Sub 'service/${Cluster}/${BackendService}'
+  # - MinCapacity: MinCapacity
+  # - MaxCapacity: MaxCapacity
+  
+  # AWS::ApplicationAutoScaling::ScalableTarget (frontend)
+  # - ServiceNamespace: ecs
+  # - ScalableDimension: ecs:service:DesiredCount
+  # - ResourceId: !Sub 'service/${Cluster}/${FrontendService}'
+  # - MinCapacity: MinCapacity
+  # - MaxCapacity: MaxCapacity
+  
+  # AWS::ApplicationAutoScaling::ScalingPolicy (CPU-based scaling)
+  # - PolicyType: TargetTrackingScaling
+  # - TargetTrackingScalingPolicyConfiguration:
+  #   - TargetValue: 70.0 (CPU utilization)
+  #   - PredefinedMetricSpecification:
+  #     - PredefinedMetricType: ECSServiceAverageCPUUtilization
+
+Outputs:
+  ECRBackendRepositoryUri:
+    Description: ECR repository URI for backend
+    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${BackendRepository}'
+    Export:
+      Name: !Sub '${EnvironmentName}-ECRBackendRepositoryUri'
+  
+  ECRFrontendRepositoryUri:
+    Description: ECR repository URI for frontend
+    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${FrontendRepository}'
+    Export:
+      Name: !Sub '${EnvironmentName}-ECRFrontendRepositoryUri'
+  
+  ECSClusterName:
+    Description: ECS cluster name
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub '${EnvironmentName}-ECSClusterName'
+  
+  ALBDnsName:
+    Description: DNS name of the Application Load Balancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Export:
+      Name: !Sub '${EnvironmentName}-ALBDnsName'
+  
+  ALBArn:
+    Description: ARN of the Application Load Balancer
+    Value: !GetAtt ApplicationLoadBalancer.LoadBalancerFullName
+    Export:
+      Name: !Sub '${EnvironmentName}-ALBArn'
+  
+  BackendServiceName:
+    Description: Backend ECS service name
+    Value: !Ref BackendService
+    Export:
+      Name: !Sub '${EnvironmentName}-BackendServiceName'
+  
+  FrontendServiceName:
+    Description: Frontend ECS service name
+    Value: !Ref FrontendService
+    Export:
+      Name: !Sub '${EnvironmentName}-FrontendServiceName'

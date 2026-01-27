@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Stack 1: Network Infrastructure - VPC, subnets, NAT Gateway, Security Groups, Route Tables'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Environment identifier (e.g., aipos-dev, aipos-staging, aipos-prod)
+    AllowedPattern: ^[a-z0-9-]+$
+    MinLength: 3
+    MaxLength: 50
+  
+  VpcCIDR:
+    Type: String
+    Description: CIDR block for the VPC
+    Default: 10.0.0.0/16
+    AllowedPattern: ^([0-9]{1,3}\.){3}[0-9]{1,3}/16$
+  
+  AvailabilityZones:
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+    Description: List of availability zones (3 AZs recommended)
+    Default: ''
+  
+  EnableDnsHostnames:
+    Type: String
+    Description: Enable DNS hostnames in VPC
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+  
+  EnableDnsSupport:
+    Type: String
+    Description: Enable DNS support in VPC
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+  
+  NATGatewayCount:
+    Type: Number
+    Description: Number of NAT Gateways (1 for cost-optimized, 3 for HA)
+    Default: 1
+    MinValue: 1
+    MaxValue: 3
+
+Resources:
+  # TODO: VPC
+  # AWS::EC2::VPC
+  # - CidrBlock from VpcCIDR parameter
+  # - EnableDnsHostnames and EnableDnsSupport
+  # - Tags: Name, Environment, ManagedBy
+  
+  # TODO: Internet Gateway
+  # AWS::EC2::InternetGateway
+  # - Attach to VPC
+  # - Tags: Name, Environment, ManagedBy
+  
+  # TODO: Public Subnets (3 AZs)
+  # AWS::EC2::Subnet
+  # - One subnet per availability zone
+  # - MapPublicIpOnLaunch: true
+  # - Tags: Name, Environment, Type (public), ManagedBy
+  
+  # TODO: Private Subnets (3 AZs)
+  # AWS::EC2::Subnet
+  # - One subnet per availability zone
+  # - MapPublicIpOnLaunch: false
+  # - Tags: Name, Environment, Type (private), ManagedBy
+  
+  # TODO: NAT Gateways
+  # AWS::EC2::NatGateway
+  # - One per public subnet (based on NATGatewayCount)
+  # - Elastic IP allocation
+  # - Tags: Name, Environment, ManagedBy
+  
+  # TODO: Route Tables
+  # AWS::EC2::RouteTable
+  # - Public route table with Internet Gateway route
+  # - Private route tables (one per AZ) with NAT Gateway routes
+  # - Associate subnets with appropriate route tables
+  # - Tags: Name, Environment, Type, ManagedBy
+  
+  # TODO: Security Groups
+  # AWS::EC2::SecurityGroup
+  # - ALB Security Group (allow HTTP/HTTPS from internet)
+  # - ECS Security Group (allow from ALB)
+  # - RDS Security Group (allow from ECS)
+  # - Lambda Security Group (if needed)
+  # - Tags: Name, Environment, Type, ManagedBy
+
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${EnvironmentName}-VpcId'
+  
+  PublicSubnetIds:
+    Description: List of public subnet IDs
+    Value: !Join [',', [!Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3]]
+    Export:
+      Name: !Sub '${EnvironmentName}-PublicSubnetIds'
+  
+  PrivateSubnetIds:
+    Description: List of private subnet IDs
+    Value: !Join [',', [!Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3]]
+    Export:
+      Name: !Sub '${EnvironmentName}-PrivateSubnetIds'
+  
+  ALBSecurityGroupId:
+    Description: Security Group ID for Application Load Balancer
+    Value: !Ref ALBSecurityGroup
+    Export:
+      Name: !Sub '${EnvironmentName}-ALBSecurityGroupId'
+  
+  ECSSecurityGroupId:
+    Description: Security Group ID for ECS tasks
+    Value: !Ref ECSSecurityGroup
+    Export:
+      Name: !Sub '${EnvironmentName}-ECSSecurityGroupId'
+  
+  RDSSecurityGroupId:
+    Description: Security Group ID for RDS database
+    Value: !Ref RDSSecurityGroup
+    Export:
+      Name: !Sub '${EnvironmentName}-RDSSecurityGroupId'

@@ -1,0 +1,138 @@
+[
+  {
+    "ParameterKey": "EnvironmentName",
+    "ParameterValue": "aipos-staging"
+  },
+  {
+    "ParameterKey": "VpcCIDR",
+    "ParameterValue": "10.1.0.0/16"
+  },
+  {
+    "ParameterKey": "AvailabilityZones",
+    "ParameterValue": "us-east-1a,us-east-1b,us-east-1c"
+  },
+  {
+    "ParameterKey": "EnableDnsHostnames",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "EnableDnsSupport",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "NATGatewayCount",
+    "ParameterValue": "3"
+  },
+  {
+    "ParameterKey": "DatabaseInstanceClass",
+    "ParameterValue": "db.t3.medium"
+  },
+  {
+    "ParameterKey": "DatabaseName",
+    "ParameterValue": "aipos"
+  },
+  {
+    "ParameterKey": "DatabaseMasterUsername",
+    "ParameterValue": "postgres"
+  },
+  {
+    "ParameterKey": "DatabaseMasterPassword",
+    "ParameterValue": "CHANGE_ME_IN_SECRETS_MANAGER"
+  },
+  {
+    "ParameterKey": "EnableMultiAZ",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "BackupRetentionPeriod",
+    "ParameterValue": "7"
+  },
+  {
+    "ParameterKey": "StorageType",
+    "ParameterValue": "gp3"
+  },
+  {
+    "ParameterKey": "AllocatedStorage",
+    "ParameterValue": "50"
+  },
+  {
+    "ParameterKey": "DocumentsBucketName",
+    "ParameterValue": "aipos-staging-documents"
+  },
+  {
+    "ParameterKey": "DataLakeBucketName",
+    "ParameterValue": "aipos-staging-data-lake"
+  },
+  {
+    "ParameterKey": "SharedModelsBucketName",
+    "ParameterValue": "aipos-shared-models"
+  },
+  {
+    "ParameterKey": "EnableVersioning",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "EnableLifecyclePolicies",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "GlacierTransitionDays",
+    "ParameterValue": "90"
+  },
+  {
+    "ParameterKey": "CertificateArn",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "DomainName",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "BackendImageTag",
+    "ParameterValue": "latest"
+  },
+  {
+    "ParameterKey": "FrontendImageTag",
+    "ParameterValue": "latest"
+  },
+  {
+    "ParameterKey": "BackendCpu",
+    "ParameterValue": "512"
+  },
+  {
+    "ParameterKey": "BackendMemory",
+    "ParameterValue": "1024"
+  },
+  {
+    "ParameterKey": "FrontendCpu",
+    "ParameterValue": "256"
+  },
+  {
+    "ParameterKey": "FrontendMemory",
+    "ParameterValue": "512"
+  },
+  {
+    "ParameterKey": "DesiredCount",
+    "ParameterValue": "2"
+  },
+  {
+    "ParameterKey": "MinCapacity",
+    "ParameterValue": "2"
+  },
+  {
+    "ParameterKey": "MaxCapacity",
+    "ParameterValue": "10"
+  },
+  {
+    "ParameterKey": "AlertEmail",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "AlarmEvaluationPeriods",
+    "ParameterValue": "2"
+  },
+  {
+    "ParameterKey": "AlarmPeriod",
+    "ParameterValue": "300"
+  }
+]

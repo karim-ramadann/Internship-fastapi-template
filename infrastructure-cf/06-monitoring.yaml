@@ -1,0 +1,180 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Stack 6: Monitoring Infrastructure - CloudWatch dashboards, alarms, and SNS topics'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Environment identifier (e.g., aipos-dev, aipos-staging, aipos-prod)
+    AllowedPattern: ^[a-z0-9-]+$
+    MinLength: 3
+    MaxLength: 50
+  
+  ECSClusterName:
+    Type: String
+    Description: ECS cluster name from Compute stack
+    # TODO: Use ImportValue to get from Compute stack output
+  
+  BackendServiceName:
+    Type: String
+    Description: Backend ECS service name from Compute stack
+    # TODO: Use ImportValue to get from Compute stack output
+  
+  FrontendServiceName:
+    Type: String
+    Description: Frontend ECS service name from Compute stack
+    # TODO: Use ImportValue to get from Compute stack output
+  
+  DBInstanceIdentifier:
+    Type: String
+    Description: RDS instance identifier from Database stack
+    # TODO: Use ImportValue to get from Database stack output
+  
+  AlertEmail:
+    Type: String
+    Description: Email address for CloudWatch alarms
+    Default: ''
+    AllowedPattern: ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$
+  
+  AlarmEvaluationPeriods:
+    Type: Number
+    Description: Number of evaluation periods for alarms
+    Default: 2
+    MinValue: 1
+    MaxValue: 10
+  
+  AlarmPeriod:
+    Type: Number
+    Description: Period in seconds for alarm evaluation
+    Default: 300
+    AllowedValues: [60, 300, 900, 3600]
+
+Resources:
+  # TODO: SNS Topic for Alerts
+  # AWS::SNS::Topic
+  # - TopicName: !Sub '${EnvironmentName}-alerts'
+  # - DisplayName: !Sub '${EnvironmentName} Alerts'
+  # - Tags: Name, Environment, Type (alerts), ManagedBy
+  
+  # TODO: SNS Subscription (Email)
+  # AWS::SNS::Subscription
+  # - TopicArn: Reference to SNS topic
+  # - Protocol: email
+  # - Endpoint: AlertEmail parameter
+  # - Condition: Only create if AlertEmail is provided
+  
+  # TODO: CloudWatch Dashboard
+  # AWS::CloudWatch::Dashboard
+  # - DashboardName: !Sub '${EnvironmentName}-dashboard'
+  # - DashboardBody: JSON with widgets for:
+  #   - ECS CPU/Memory utilization
+  #   - RDS CPU/Memory/Connections
+  #   - ALB request count, latency, error rates
+  #   - SQS queue depth
+  #   - Custom application metrics
+  
+  # TODO: CloudWatch Alarms - ECS CPU
+  # AWS::CloudWatch::Alarm (Backend CPU High)
+  # - AlarmName: !Sub '${EnvironmentName}-backend-cpu-high'
+  # - MetricName: CPUUtilization
+  # - Namespace: AWS/ECS
+  # - Dimensions: ClusterName, ServiceName
+  # - Statistic: Average
+  # - Period: AlarmPeriod
+  # - EvaluationPeriods: AlarmEvaluationPeriods
+  # - Threshold: 80
+  # - ComparisonOperator: GreaterThanThreshold
+  # - AlarmActions: SNS topic ARN
+  
+  # AWS::CloudWatch::Alarm (Frontend CPU High)
+  # - Similar to backend CPU alarm
+  
+  # TODO: CloudWatch Alarms - ECS Memory
+  # AWS::CloudWatch::Alarm (Backend Memory High)
+  # - AlarmName: !Sub '${EnvironmentName}-backend-memory-high'
+  # - MetricName: MemoryUtilization
+  # - Namespace: AWS/ECS
+  # - Dimensions: ClusterName, ServiceName
+  # - Statistic: Average
+  # - Period: AlarmPeriod
+  # - EvaluationPeriods: AlarmEvaluationPeriods
+  # - Threshold: 80
+  # - ComparisonOperator: GreaterThanThreshold
+  # - AlarmActions: SNS topic ARN
+  
+  # AWS::CloudWatch::Alarm (Frontend Memory High)
+  # - Similar to backend memory alarm
+  
+  # TODO: CloudWatch Alarms - RDS
+  # AWS::CloudWatch::Alarm (RDS CPU High)
+  # - AlarmName: !Sub '${EnvironmentName}-rds-cpu-high'
+  # - MetricName: CPUUtilization
+  # - Namespace: AWS/RDS
+  # - Dimensions: DBInstanceIdentifier
+  # - Statistic: Average
+  # - Period: AlarmPeriod
+  # - EvaluationPeriods: AlarmEvaluationPeriods
+  # - Threshold: 80
+  # - ComparisonOperator: GreaterThanThreshold
+  # - AlarmActions: SNS topic ARN
+  
+  # AWS::CloudWatch::Alarm (RDS Connections High)
+  # - AlarmName: !Sub '${EnvironmentName}-rds-connections-high'
+  # - MetricName: DatabaseConnections
+  # - Namespace: AWS/RDS
+  # - Dimensions: DBInstanceIdentifier
+  # - Statistic: Average
+  # - Period: AlarmPeriod
+  # - EvaluationPeriods: AlarmEvaluationPeriods
+  # - Threshold: 80 (or appropriate for instance type)
+  # - ComparisonOperator: GreaterThanThreshold
+  # - AlarmActions: SNS topic ARN
+  
+  # AWS::CloudWatch::Alarm (RDS Free Storage Low)
+  # - AlarmName: !Sub '${EnvironmentName}-rds-storage-low'
+  # - MetricName: FreeStorageSpace
+  # - Namespace: AWS/RDS
+  # - Dimensions: DBInstanceIdentifier
+  # - Statistic: Average
+  # - Period: AlarmPeriod
+  # - EvaluationPeriods: AlarmEvaluationPeriods
+  # - Threshold: 10000000000 (10 GB in bytes)
+  # - ComparisonOperator: LessThanThreshold
+  # - AlarmActions: SNS topic ARN
+  
+  # TODO: CloudWatch Alarms - ALB
+  # AWS::CloudWatch::Alarm (ALB 5xx Errors)
+  # - AlarmName: !Sub '${EnvironmentName}-alb-5xx-errors'
+  # - MetricName: HTTPCode_Target_5XX_Count
+  # - Namespace: AWS/ApplicationELB
+  # - Dimensions: LoadBalancer
+  # - Statistic: Sum
+  # - Period: AlarmPeriod
+  # - EvaluationPeriods: AlarmEvaluationPeriods
+  # - Threshold: 10
+  # - ComparisonOperator: GreaterThanThreshold
+  # - AlarmActions: SNS topic ARN
+  
+  # AWS::CloudWatch::Alarm (ALB Target Response Time)
+  # - AlarmName: !Sub '${EnvironmentName}-alb-response-time-high'
+  # - MetricName: TargetResponseTime
+  # - Namespace: AWS/ApplicationELB
+  # - Dimensions: LoadBalancer
+  # - Statistic: Average
+  # - Period: AlarmPeriod
+  # - EvaluationPeriods: AlarmEvaluationPeriods
+  # - Threshold: 5 (seconds)
+  # - ComparisonOperator: GreaterThanThreshold
+  # - AlarmActions: SNS topic ARN
+
+Outputs:
+  SNSTopicArn:
+    Description: ARN of the SNS topic for alerts
+    Value: !Ref AlertsTopic
+    Export:
+      Name: !Sub '${EnvironmentName}-SNSTopicArn'
+  
+  DashboardUrl:
+    Description: URL to CloudWatch dashboard
+    Value: !Sub 'https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${Dashboard}'
+    Export:
+      Name: !Sub '${EnvironmentName}-DashboardUrl'

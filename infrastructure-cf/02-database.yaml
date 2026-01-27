@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Stack 2: Database Infrastructure - RDS PostgreSQL 15+ with TimescaleDB extension'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Environment identifier (e.g., aipos-dev, aipos-staging, aipos-prod)
+    AllowedPattern: ^[a-z0-9-]+$
+    MinLength: 3
+    MaxLength: 50
+  
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID from Network stack
+    # TODO: Use ImportValue to get from Network stack output
+  
+  PrivateSubnetIds:
+    Type: CommaDelimitedList
+    Description: List of private subnet IDs from Network stack
+    # TODO: Use ImportValue to get from Network stack output
+  
+  RDSSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security Group ID for RDS from Network stack
+    # TODO: Use ImportValue to get from Network stack output
+  
+  DatabaseInstanceClass:
+    Type: String
+    Description: RDS instance class
+    Default: db.t3.medium
+    AllowedValues:
+      - db.t3.micro
+      - db.t3.small
+      - db.t3.medium
+      - db.t3.large
+      - db.r5.large
+      - db.r5.xlarge
+  
+  DatabaseName:
+    Type: String
+    Description: Initial database name
+    Default: aipos
+    AllowedPattern: ^[a-zA-Z][a-zA-Z0-9_]*$
+    MinLength: 1
+    MaxLength: 64
+  
+  DatabaseMasterUsername:
+    Type: String
+    Description: Master username for the database
+    Default: postgres
+    NoEcho: true
+  
+  DatabaseMasterPassword:
+    Type: String
+    Description: Master password for the database
+    NoEcho: true
+    MinLength: 8
+    MaxLength: 128
+  
+  EnableMultiAZ:
+    Type: String
+    Description: Enable Multi-AZ deployment (recommended for staging/prod)
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+  
+  BackupRetentionPeriod:
+    Type: Number
+    Description: Number of days to retain automated backups
+    Default: 7
+    MinValue: 0
+    MaxValue: 35
+  
+  StorageType:
+    Type: String
+    Description: Storage type for RDS instance
+    Default: gp3
+    AllowedValues: ['gp2', 'gp3', 'io1']
+  
+  AllocatedStorage:
+    Type: Number
+    Description: Allocated storage in GB
+    Default: 20
+    MinValue: 20
+    MaxValue: 65536
+
+Resources:
+  # TODO: DB Subnet Group
+  # AWS::RDS::DBSubnetGroup
+  # - SubnetIds from PrivateSubnetIds parameter
+  # - Description
+  # - Tags: Name, Environment, ManagedBy
+  
+  # TODO: DB Parameter Group
+  # AWS::RDS::DBParameterGroup
+  # - DBParameterGroupFamily: postgres15
+  # - Parameters for TimescaleDB extension
+  # - Tags: Name, Environment, ManagedBy
+  
+  # TODO: RDS Instance
+  # AWS::RDS::DBInstance
+  # - Engine: postgres
+  # - EngineVersion: 15.x or latest
+  # - DBInstanceClass from parameter
+  # - DBName from parameter
+  # - MasterUsername and MasterUserPassword from parameters
+  # - DBSubnetGroupName reference
+  # - VPCSecurityGroups with RDSSecurityGroupId
+  # - MultiAZ from EnableMultiAZ parameter
+  # - BackupRetentionPeriod from parameter
+  # - StorageType and AllocatedStorage from parameters
+  # - EnablePerformanceInsights: true (optional)
+  # - DeletionProtection: true for prod, false for dev
+  # - Tags: Name, Environment, ManagedBy
+  
+  # TODO: DB Instance (for TimescaleDB extension)
+  # Note: TimescaleDB extension will be enabled via parameter group or post-deployment script
+
+Outputs:
+  DBInstanceIdentifier:
+    Description: RDS instance identifier
+    Value: !Ref DBInstance
+    Export:
+      Name: !Sub '${EnvironmentName}-DBInstanceIdentifier'
+  
+  DBEndpoint:
+    Description: RDS instance endpoint
+    Value: !GetAtt DBInstance.Endpoint.Address
+    Export:
+      Name: !Sub '${EnvironmentName}-DBEndpoint'
+  
+  DBPort:
+    Description: RDS instance port
+    Value: !GetAtt DBInstance.Endpoint.Port
+    Export:
+      Name: !Sub '${EnvironmentName}-DBPort'
+  
+  DBName:
+    Description: Database name
+    Value: !Ref DatabaseName
+    Export:
+      Name: !Sub '${EnvironmentName}-DBName'

@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Stack 3: Storage Infrastructure - S3 buckets for documents, data lake, and ML models'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Environment identifier (e.g., aipos-dev, aipos-staging, aipos-prod)
+    AllowedPattern: ^[a-z0-9-]+$
+    MinLength: 3
+    MaxLength: 50
+  
+  DocumentsBucketName:
+    Type: String
+    Description: S3 bucket name for documents (invoices, receipts)
+    Default: ''
+    # TODO: Generate default: !Sub '${EnvironmentName}-documents'
+  
+  DataLakeBucketName:
+    Type: String
+    Description: S3 bucket name for analytics data lake
+    Default: ''
+    # TODO: Generate default: !Sub '${EnvironmentName}-data-lake'
+  
+  SharedModelsBucketName:
+    Type: String
+    Description: S3 bucket name for shared ML models
+    Default: ''
+    # TODO: Generate default: 'aipos-shared-models' (shared across environments)
+  
+  EnableVersioning:
+    Type: String
+    Description: Enable versioning on S3 buckets
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+  
+  EnableLifecyclePolicies:
+    Type: String
+    Description: Enable lifecycle policies (archive to Glacier after 90 days)
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+  
+  GlacierTransitionDays:
+    Type: Number
+    Description: Number of days before transitioning to Glacier
+    Default: 90
+    MinValue: 1
+    MaxValue: 365
+
+Resources:
+  # TODO: Documents S3 Bucket
+  # AWS::S3::Bucket
+  # - BucketName from parameter
+  # - VersioningConfiguration: Enabled if EnableVersioning is true
+  # - LifecycleConfiguration: Transition to Glacier after GlacierTransitionDays
+  # - PublicAccessBlockConfiguration: Block all public access
+  # - ServerSideEncryptionConfiguration: AES256 or KMS
+  # - Tags: Name, Environment, Type (documents), ManagedBy
+  
+  # TODO: Data Lake S3 Bucket
+  # AWS::S3::Bucket
+  # - BucketName from parameter
+  # - VersioningConfiguration: Enabled if EnableVersioning is true
+  # - LifecycleConfiguration: Transition to Glacier after GlacierTransitionDays
+  # - PublicAccessBlockConfiguration: Block all public access
+  # - ServerSideEncryptionConfiguration: AES256 or KMS
+  # - Tags: Name, Environment, Type (data-lake), ManagedBy
+  
+  # TODO: Shared Models S3 Bucket
+  # AWS::S3::Bucket
+  # - BucketName from parameter (shared across environments)
+  # - VersioningConfiguration: Enabled if EnableVersioning is true
+  # - PublicAccessBlockConfiguration: Block all public access
+  # - ServerSideEncryptionConfiguration: AES256 or KMS
+  # - Tags: Name, Type (shared-models), ManagedBy
+  
+  # TODO: Bucket Policies (if needed)
+  # AWS::S3::BucketPolicy
+  # - Policies for cross-account access or specific IAM roles
+  # - Attach to appropriate buckets
+
+Outputs:
+  DocumentsBucketName:
+    Description: Name of the documents S3 bucket
+    Value: !Ref DocumentsBucket
+    Export:
+      Name: !Sub '${EnvironmentName}-DocumentsBucketName'
+  
+  DocumentsBucketArn:
+    Description: ARN of the documents S3 bucket
+    Value: !GetAtt DocumentsBucket.Arn
+    Export:
+      Name: !Sub '${EnvironmentName}-DocumentsBucketArn'
+  
+  DataLakeBucketName:
+    Description: Name of the data lake S3 bucket
+    Value: !Ref DataLakeBucket
+    Export:
+      Name: !Sub '${EnvironmentName}-DataLakeBucketName'
+  
+  DataLakeBucketArn:
+    Description: ARN of the data lake S3 bucket
+    Value: !GetAtt DataLakeBucket.Arn
+    Export:
+      Name: !Sub '${EnvironmentName}-DataLakeBucketArn'
+  
+  SharedModelsBucketName:
+    Description: Name of the shared models S3 bucket
+    Value: !Ref SharedModelsBucket
+    Export:
+      Name: !Sub '${EnvironmentName}-SharedModelsBucketName'
+  
+  SharedModelsBucketArn:
+    Description: ARN of the shared models S3 bucket
+    Value: !GetAtt SharedModelsBucket.Arn
+    Export:
+      Name: !Sub '${EnvironmentName}-SharedModelsBucketArn'
