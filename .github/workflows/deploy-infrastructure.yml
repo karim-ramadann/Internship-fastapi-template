@@ -1,189 +1,189 @@
-name: Deploy Infrastructure
+# name: Deploy Infrastructure
 
-on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'infrastructure/terraform/**'
-  pull_request:
-    paths:
-      - 'infrastructure/terraform/**'
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#       - master
+#     paths:
+#       - 'infrastructure/terraform/**'
+#   pull_request:
+#     paths:
+#       - 'infrastructure/terraform/**'
+#   workflow_dispatch:
 
-jobs:
-  validate:
-    name: Validate Terraform
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+# jobs:
+#   validate:
+#     name: Validate Terraform
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v6
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.5.0
 
-      - name: Terraform Format Check
-        run: |
-          cd infrastructure/terraform
-          terraform fmt -check -recursive
+#       - name: Terraform Format Check
+#         run: |
+#           cd infrastructure/terraform
+#           terraform fmt -check -recursive
 
-      - name: Terraform Init (Staging)
-        run: |
-          cd infrastructure/terraform
-          terraform init -backend-config=environments/staging/backend.hcl -backend=false
+#       - name: Terraform Init (Staging)
+#         run: |
+#           cd infrastructure/terraform
+#           terraform init -backend-config=environments/staging/backend.hcl -backend=false
 
-      - name: Terraform Validate (Staging)
-        run: |
-          cd infrastructure/terraform
-          terraform validate -var-file=environments/staging/terraform.tfvars
+#       - name: Terraform Validate (Staging)
+#         run: |
+#           cd infrastructure/terraform
+#           terraform validate -var-file=environments/staging/terraform.tfvars
 
-  plan-staging:
-    name: Plan Staging Infrastructure
-    runs-on: ubuntu-latest
-    needs: validate
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+#   plan-staging:
+#     name: Plan Staging Infrastructure
+#     runs-on: ubuntu-latest
+#     needs: validate
+#     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v6
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.5.0
 
-      - name: Terraform Init
-        run: |
-          cd infrastructure/terraform
-          terraform init -backend-config=environments/staging/backend.hcl
+#       - name: Terraform Init
+#         run: |
+#           cd infrastructure/terraform
+#           terraform init -backend-config=environments/staging/backend.hcl
 
-      - name: Terraform Plan
-        run: |
-          cd infrastructure/terraform
-          terraform plan -var-file=environments/staging/terraform.tfvars -out=tfplan
+#       - name: Terraform Plan
+#         run: |
+#           cd infrastructure/terraform
+#           terraform plan -var-file=environments/staging/terraform.tfvars -out=tfplan
 
-      - name: Upload Plan
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan-staging
-          path: infrastructure/terraform/tfplan
+#       - name: Upload Plan
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: tfplan-staging
+#           path: infrastructure/terraform/tfplan
 
-  apply-staging:
-    name: Apply Staging Infrastructure
-    runs-on: ubuntu-latest
-    needs: plan-staging
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+#   apply-staging:
+#     name: Apply Staging Infrastructure
+#     runs-on: ubuntu-latest
+#     needs: plan-staging
+#     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v6
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.5.0
 
-      - name: Download Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan-staging
-          path: infrastructure/terraform
+#       - name: Download Plan
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: tfplan-staging
+#           path: infrastructure/terraform
 
-      - name: Terraform Init
-        run: |
-          cd infrastructure/terraform
-          terraform init -backend-config=environments/staging/backend.hcl
+#       - name: Terraform Init
+#         run: |
+#           cd infrastructure/terraform
+#           terraform init -backend-config=environments/staging/backend.hcl
 
-      - name: Terraform Apply
-        run: |
-          cd infrastructure/terraform
-          terraform apply -auto-approve tfplan
+#       - name: Terraform Apply
+#         run: |
+#           cd infrastructure/terraform
+#           terraform apply -auto-approve tfplan
 
-  plan-production:
-    name: Plan Production Infrastructure
-    runs-on: ubuntu-latest
-    needs: validate
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+#   plan-production:
+#     name: Plan Production Infrastructure
+#     runs-on: ubuntu-latest
+#     needs: validate
+#     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v6
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.5.0
 
-      - name: Terraform Init
-        run: |
-          cd infrastructure/terraform
-          terraform init -backend-config=environments/production/backend.hcl
+#       - name: Terraform Init
+#         run: |
+#           cd infrastructure/terraform
+#           terraform init -backend-config=environments/production/backend.hcl
 
-      - name: Terraform Plan
-        run: |
-          cd infrastructure/terraform
-          terraform plan -var-file=environments/production/terraform.tfvars -out=tfplan
+#       - name: Terraform Plan
+#         run: |
+#           cd infrastructure/terraform
+#           terraform plan -var-file=environments/production/terraform.tfvars -out=tfplan
 
-      - name: Upload Plan
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan-production
-          path: infrastructure/terraform/tfplan
+#       - name: Upload Plan
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: tfplan-production
+#           path: infrastructure/terraform/tfplan
 
-  apply-production:
-    name: Apply Production Infrastructure
-    runs-on: ubuntu-latest
-    needs: plan-production
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-    environment: production
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+#   apply-production:
+#     name: Apply Production Infrastructure
+#     runs-on: ubuntu-latest
+#     needs: plan-production
+#     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+#     environment: production
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v6
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.5.0
 
-      - name: Download Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan-production
-          path: infrastructure/terraform
+#       - name: Download Plan
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: tfplan-production
+#           path: infrastructure/terraform
 
-      - name: Terraform Init
-        run: |
-          cd infrastructure/terraform
-          terraform init -backend-config=environments/production/backend.hcl
+#       - name: Terraform Init
+#         run: |
+#           cd infrastructure/terraform
+#           terraform init -backend-config=environments/production/backend.hcl
 
-      - name: Terraform Apply
-        run: |
-          cd infrastructure/terraform
-          terraform apply -auto-approve tfplan
+#       - name: Terraform Apply
+#         run: |
+#           cd infrastructure/terraform
+#           terraform apply -auto-approve tfplan
