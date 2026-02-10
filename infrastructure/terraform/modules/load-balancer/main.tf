@@ -1,211 +1,52 @@
-# Application Load Balancer using terraform-aws-modules/alb
+/**
+ * # Application Load Balancer Module
+ *
+ * Thin wrapper around [terraform-aws-modules/alb/aws](https://registry.terraform.io/modules/terraform-aws-modules/alb/aws/latest).
+ *
+ * This module provides organization-wide standards for ALB configuration:
+ * - Naming convention: `{project}-{environment}-alb`
+ * - Standard tagging with project and environment
+ * - HTTP/2 enabled by default
+ * - Cross-zone load balancing enabled
+ * - Configurable deletion protection
+ *
+ * **Note**: Target groups, listeners, and listener rules should be defined in the root module
+ * to maintain flexibility and avoid coupling business logic to this wrapper.
+ */
+
+locals {
+  alb_name = "${var.context.project}-${var.context.environment}-alb"
+  
+  tags = merge(
+    var.context.common_tags,
+    {
+      Name      = local.alb_name
+      Component = "load-balancer"
+    }
+  )
+}
+
 module "alb" {
   source  = "terraform-aws-modules/alb/aws"
   version = "~> 9.0"
 
-  name               = "${var.context.project}-${var.context.environment}-alb"
-  load_balancer_type = "application"
-  internal           = false
+  name               = local.alb_name
+  load_balancer_type = var.load_balancer_type
+  internal           = var.internal
 
   vpc_id          = var.vpc_id
-  subnets         = var.public_subnet_ids
-  security_groups = [var.alb_security_group_id]
+  subnets         = var.subnets
+  security_groups = var.security_groups
 
-  # Enable deletion protection for production
-  enable_deletion_protection = var.context.environment == "production"
+  # Deletion protection
+  enable_deletion_protection = var.enable_deletion_protection
 
-  # Access logs (optional but recommended)
-  enable_http2               = true
-  enable_cross_zone_load_balancing = true
+  # Performance settings
+  enable_http2                     = var.enable_http2
+  enable_cross_zone_load_balancing = var.enable_cross_zone_load_balancing
+  
+  # Access logs (optional)
+  access_logs = var.access_logs
 
-  tags = merge(
-    var.context.common_tags,
-    {
-      Name = "${var.context.project}-${var.context.environment}-alb"
-    }
-  )
-}
-
-# Target Group for Backend (FastAPI)
-resource "aws_lb_target_group" "backend" {
-  name        = "${var.context.project}-${var.context.environment}-backend-tg"
-  port        = 8000
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    unhealthy_threshold = 3
-    timeout             = 5
-    interval            = 30
-    path                = "/api/v1/utils/health-check/"
-    protocol            = "HTTP"
-    matcher             = "200"
-  }
-
-  deregistration_delay = 30
-
-  tags = merge(
-    var.context.common_tags,
-    {
-      Name = "${var.context.project}-${var.context.environment}-backend-tg"
-    }
-  )
-}
-
-# Target Group for Frontend
-resource "aws_lb_target_group" "frontend" {
-  name        = "${var.context.project}-${var.context.environment}-frontend-tg"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    unhealthy_threshold = 3
-    timeout             = 5
-    interval            = 30
-    path                = "/"
-    protocol            = "HTTP"
-    matcher             = "200"
-  }
-
-  deregistration_delay = 30
-
-  tags = merge(
-    var.context.common_tags,
-    {
-      Name = "${var.context.project}-${var.context.environment}-frontend-tg"
-    }
-  )
-}
-
-# Target Group for Adminer
-resource "aws_lb_target_group" "adminer" {
-  name        = "${var.context.project}-${var.context.environment}-adminer-tg"
-  port        = 8080
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    unhealthy_threshold = 3
-    timeout             = 5
-    interval            = 30
-    path                = "/"
-    protocol            = "HTTP"
-    matcher             = "200"
-  }
-
-  deregistration_delay = 30
-
-  tags = merge(
-    var.context.common_tags,
-    {
-      Name = "${var.context.project}-${var.context.environment}-adminer-tg"
-    }
-  )
-}
-
-# HTTP Listener (redirect to HTTPS)
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = module.alb.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type = "redirect"
-
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
-  }
-
-  tags = var.context.common_tags
-}
-
-# HTTPS Listener
-resource "aws_lb_listener" "https" {
-  load_balancer_arn = module.alb.arn
-  port              = 443
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = var.certificate_arn
-
-  default_action {
-    type = "fixed-response"
-
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "Not Found"
-      status_code  = "404"
-    }
-  }
-
-  tags = var.context.common_tags
-}
-
-# Listener Rule for Backend (api.domain.com)
-resource "aws_lb_listener_rule" "backend" {
-  listener_arn = aws_lb_listener.https.arn
-  priority     = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.backend.arn
-  }
-
-  condition {
-    host_header {
-      values = ["api.${var.domain}"]
-    }
-  }
-
-  tags = var.context.common_tags
-}
-
-# Listener Rule for Frontend (dashboard.domain.com)
-resource "aws_lb_listener_rule" "frontend" {
-  listener_arn = aws_lb_listener.https.arn
-  priority     = 200
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend.arn
-  }
-
-  condition {
-    host_header {
-      values = ["dashboard.${var.domain}"]
-    }
-  }
-
-  tags = var.context.common_tags
-}
-
-# Listener Rule for Adminer (adminer.domain.com)
-resource "aws_lb_listener_rule" "adminer" {
-  listener_arn = aws_lb_listener.https.arn
-  priority     = 300
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.adminer.arn
-  }
-
-  condition {
-    host_header {
-      values = ["adminer.${var.domain}"]
-    }
-  }
-
-  tags = var.context.common_tags
+  tags = local.tags
 }

@@ -137,6 +137,24 @@ variable "ecs_desired_count" {
   default     = 1
 }
 
+variable "task_cpu" {
+  description = "CPU units for the ECS task"
+  type        = string
+  default     = "1024"
+}
+
+variable "task_memory" {
+  description = "Memory (MiB) for the ECS task"
+  type        = string
+  default     = "2048"
+}
+
+variable "enable_service_discovery" {
+  description = "Enable AWS Cloud Map service discovery for ECS services"
+  type        = bool
+  default     = true
+}
+
 variable "rds_instance_class" {
   description = "RDS instance class"
   type        = string

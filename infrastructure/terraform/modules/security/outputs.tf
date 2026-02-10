@@ -37,3 +37,19 @@ output "ecs_instance_profile_arn" {
   description = "ARN of the ECS EC2 instance profile"
   value       = aws_iam_instance_profile.ecs_instance_profile.arn
 }
+
+# Lambda & Step Functions Outputs
+output "lambda_execution_role_arn" {
+  description = "ARN of Lambda execution IAM role"
+  value       = aws_iam_role.lambda_execution_role.arn
+}
+
+output "lambda_security_group_id" {
+  description = "ID of Lambda security group"
+  value       = module.lambda_security_group.security_group_id
+}
+
+output "step_functions_execution_role_arn" {
+  description = "ARN of Step Functions execution IAM role"
+  value       = aws_iam_role.step_functions_execution_role.arn
+}
