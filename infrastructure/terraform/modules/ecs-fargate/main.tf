@@ -26,7 +26,7 @@ locals {
 # ==============================================================================
 
 module "cluster" {
-  source = "terraform-aws-modules/ecs/aws/modules/cluster"
+  source  = "terraform-aws-modules/ecs/aws//modules/cluster"
   version = "~> 5.0"
 
   cluster_name = "${local.name_prefix}-cluster"
@@ -66,7 +66,7 @@ module "cluster" {
 # ==============================================================================
 
 module "service" {
-  source  = "terraform-aws-modules/ecs/aws/modules/service"
+  source  = "terraform-aws-modules/ecs/aws//modules/service"
   version = "~> 5.0"
 
   name        = "${local.name_prefix}-service"
