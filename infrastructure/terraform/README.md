@@ -685,7 +685,7 @@ This Terraform configuration deploys a complete full-stack application infrastru
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
 
 ## Modules
 
@@ -694,7 +694,7 @@ This Terraform configuration deploys a complete full-stack application infrastru
 | <a name="module_acm"></a> [acm](#module\_acm) | ./modules/acm | n/a |
 | <a name="module_database"></a> [database](#module\_database) | ./modules/database | n/a |
 | <a name="module_ecr"></a> [ecr](#module\_ecr) | ./modules/ecr | n/a |
-| <a name="module_ecs_cluster"></a> [ecs\_cluster](#module\_ecs\_cluster) | ./modules/compute | n/a |
+| <a name="module_ecs_fargate"></a> [ecs\_fargate](#module\_ecs\_fargate) | ./modules/ecs-fargate | n/a |
 | <a name="module_load_balancer"></a> [load\_balancer](#module\_load\_balancer) | ./modules/load-balancer | n/a |
 | <a name="module_monitoring"></a> [monitoring](#module\_monitoring) | ./modules/monitoring | n/a |
 | <a name="module_networking"></a> [networking](#module\_networking) | ./modules/networking | n/a |
@@ -706,16 +706,7 @@ This Terraform configuration deploys a complete full-stack application infrastru
 
 | Name | Type |
 |------|------|
-| [aws_ecs_service.app](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
-| [aws_ecs_task_definition.app](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
-| [aws_lb_listener.http](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
-| [aws_lb_listener.https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
-| [aws_lb_listener_rule.adminer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule) | resource |
-| [aws_lb_listener_rule.backend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule) | resource |
-| [aws_lb_listener_rule.frontend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule) | resource |
-| [aws_lb_target_group.adminer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
-| [aws_lb_target_group.backend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
-| [aws_lb_target_group.frontend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
+| [aws_security_group_rule.fargate_to_rds](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_ssm_parameter.first_superuser_password](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.postgres_password](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.secret_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
@@ -742,7 +733,6 @@ This Terraform configuration deploys a complete full-stack application infrastru
 | <a name="input_create_hosted_zone"></a> [create\_hosted\_zone](#input\_create\_hosted\_zone) | Whether to create a new Route53 hosted zone or use an existing one | `bool` | `false` | no |
 | <a name="input_db_name"></a> [db\_name](#input\_db\_name) | Database name | `string` | `"app"` | no |
 | <a name="input_db_username"></a> [db\_username](#input\_db\_username) | Database master username | `string` | `"postgres"` | no |
-| <a name="input_ec2_instance_type"></a> [ec2\_instance\_type](#input\_ec2\_instance\_type) | EC2 instance type for ECS cluster | `string` | `"t3.medium"` | no |
 | <a name="input_ecs_desired_count"></a> [ecs\_desired\_count](#input\_ecs\_desired\_count) | Desired number of ECS tasks | `number` | `1` | no |
 | <a name="input_enable_service_discovery"></a> [enable\_service\_discovery](#input\_enable\_service\_discovery) | Enable AWS Cloud Map service discovery for ECS services | `bool` | `true` | no |
 | <a name="input_frontend_image_tag"></a> [frontend\_image\_tag](#input\_frontend\_image\_tag) | Docker image tag for frontend (e.g., staging-abc1234) | `string` | `"latest"` | no |
@@ -758,8 +748,8 @@ This Terraform configuration deploys a complete full-stack application infrastru
 | <a name="input_smtp_ssl"></a> [smtp\_ssl](#input\_smtp\_ssl) | Enable SSL for SMTP | `bool` | `false` | no |
 | <a name="input_smtp_tls"></a> [smtp\_tls](#input\_smtp\_tls) | Enable TLS for SMTP | `bool` | `true` | no |
 | <a name="input_smtp_user"></a> [smtp\_user](#input\_smtp\_user) | SMTP server user | `string` | `""` | no |
-| <a name="input_task_cpu"></a> [task\_cpu](#input\_task\_cpu) | CPU units for the ECS task | `string` | `"1024"` | no |
-| <a name="input_task_memory"></a> [task\_memory](#input\_task\_memory) | Memory (MiB) for the ECS task | `string` | `"2048"` | no |
+| <a name="input_task_cpu"></a> [task\_cpu](#input\_task\_cpu) | CPU units for the Fargate task (256, 512, 1024, 2048, 4096) | `number` | `1024` | no |
+| <a name="input_task_memory"></a> [task\_memory](#input\_task\_memory) | Memory (MiB) for the Fargate task | `number` | `2048` | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block for VPC | `string` | `"10.0.0.0/16"` | no |
 
 ## Outputs

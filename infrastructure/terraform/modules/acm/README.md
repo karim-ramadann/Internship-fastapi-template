@@ -64,7 +64,6 @@ No resources.
 |------|-------------|
 | <a name="output_certificate_arn"></a> [certificate\_arn](#output\_certificate\_arn) | ARN of the validated ACM certificate |
 | <a name="output_certificate_domain_name"></a> [certificate\_domain\_name](#output\_certificate\_domain\_name) | Primary domain name of the certificate |
-| <a name="output_certificate_id"></a> [certificate\_id](#output\_certificate\_id) | ID of the ACM certificate |
 | <a name="output_certificate_status"></a> [certificate\_status](#output\_certificate\_status) | Status of the ACM certificate |
 | <a name="output_distinct_domain_names"></a> [distinct\_domain\_names](#output\_distinct\_domain\_names) | List of distinct domain names for certificate validation |
 | <a name="output_validation_domains"></a> [validation\_domains](#output\_validation\_domains) | List of domains used for certificate validation |
