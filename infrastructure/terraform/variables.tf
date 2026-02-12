@@ -33,21 +33,9 @@ variable "frontend_host" {
 }
 
 # Backend Configuration
-variable "secret_key" {
-  description = "Secret key for JWT tokens"
-  type        = string
-  sensitive   = true
-}
-
 variable "first_superuser" {
   description = "Email for first superuser"
   type        = string
-}
-
-variable "first_superuser_password" {
-  description = "Password for first superuser"
-  type        = string
-  sensitive   = true
 }
 
 variable "backend_cors_origins" {

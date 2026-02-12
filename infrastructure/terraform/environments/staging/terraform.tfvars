@@ -17,10 +17,7 @@ frontend_host = "https://dashboard.staging.example.com"
 create_hosted_zone = true # Creates the zone; update NS records at your registrar after apply
 
 # Backend Configuration
-# IMPORTANT: Replace these with secure values from GitHub Secrets
-secret_key               = "changethis" # TODO: Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
 first_superuser          = "admin@example.com"
-first_superuser_password = "changethis" # TODO: Generate secure password
 backend_cors_origins     = "https://dashboard.staging.example.com,https://api.staging.example.com"
 
 # SMTP Configuration (optional - leave empty if not using email)

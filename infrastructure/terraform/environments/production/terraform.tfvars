@@ -17,10 +17,7 @@ frontend_host = "https://dashboard.example.com"
 create_hosted_zone = false # Set to true if you don't have a hosted zone yet
 
 # Backend Configuration
-# IMPORTANT: Replace these with secure values from GitHub Secrets
-secret_key               = "changethis" # TODO: Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
 first_superuser          = "admin@example.com"
-first_superuser_password = "changethis" # TODO: Generate secure password
 backend_cors_origins     = "https://dashboard.example.com,https://api.example.com"
 
 # SMTP Configuration (optional - leave empty if not using email)
