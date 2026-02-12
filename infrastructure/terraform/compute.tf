@@ -276,10 +276,6 @@ module "lambda" {
 
   environment_variables = {
     ENVIRONMENT     = var.environment
-    POSTGRES_SERVER = module.database.rds_address
-    POSTGRES_PORT   = "5432"
-    POSTGRES_DB     = var.db_name
-    POSTGRES_USER   = var.db_username
   }
 
   tags = {
