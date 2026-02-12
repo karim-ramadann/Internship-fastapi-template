@@ -192,6 +192,11 @@ variable "frontend_image_tag" {
   default     = "latest"
 }
 
+variable "lambda_image_uri" {
+  description = "Full ECR image URI for the Lambda function (e.g., 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-repo:latest)"
+  type        = string
+}
+
 # Route53 Configuration
 variable "create_hosted_zone" {
   description = "Whether to create a new Route53 hosted zone or use an existing one"

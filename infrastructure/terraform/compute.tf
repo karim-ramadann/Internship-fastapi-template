@@ -253,3 +253,32 @@ resource "aws_ecs_service" "app" {
     aws_lb_target_group.adminer
   ]
 }
+
+# ============================================================================
+# Lambda Function (Docker Image from ECR)
+# ============================================================================
+
+module "lambda" {
+  source = "./modules/lambda"
+
+  context       = local.context
+  function_name = "${local.name_prefix}-api-worker"
+  description   = "Backend worker Lambda running from ECR Docker image"
+  image_uri     = var.lambda_image_uri
+
+  timeout     = 300
+  memory_size = 1024
+
+  lambda_role = module.security.lambda_execution_role_arn
+
+  vpc_subnet_ids         = module.networking.private_subnet_ids
+  vpc_security_group_ids = [module.security.lambda_security_group_id]
+
+  environment_variables = {
+    ENVIRONMENT     = var.environment
+  }
+
+  tags = {
+    Service = "api-worker"
+  }
+}
