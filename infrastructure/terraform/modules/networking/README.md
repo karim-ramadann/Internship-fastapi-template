@@ -1,34 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-# Networking Module
-
-Thin wrapper around [terraform-aws-modules/vpc/aws](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest).
-
-This module provides organization-wide standards for VPC configuration including:
-- Consistent naming convention: `{project}-{environment}-vpc`
-- Standard tagging with project, environment, and tier tags
-- DNS resolution enabled by default
-- Configurable NAT gateway strategy (single vs per-AZ)
-
-## What This Module Adds
-
-This wrapper module provides organization-wide standards:
-
-- **Naming convention**: `{project}-{environment}-{resource_name}`
-- **Standard tagging**: Merges project, environment, and component tags
-- **Environment-based defaults**: Configures resources based on environment (production vs staging)
-
-## Usage
-
-```hcl
-module "example" {
-  source = "./modules/MODULE_NAME"
-  
-  context = local.context
-  
-  # Module-specific variables
-}
-```
-
 ## Requirements
 
 No requirements.

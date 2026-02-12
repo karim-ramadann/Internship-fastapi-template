@@ -52,11 +52,11 @@ docs-root:
 docs-modules:
 	@echo "Generating module documentation..."
 	@for dir in modules/*/; do \
-		if [ -f "$$dir.terraform-docs.yml" ] || [ -f "$$dir/.terraform-docs.yml" ]; then \
+		if [ -f "$$dir/main.tf" ]; then \
 			echo "Generating docs for $$dir"; \
-			terraform-docs markdown table --output-file README.md --output-mode inject "$$dir"; \
+			terraform-docs "$$dir"; \
 		else \
-			echo "Skipping $$dir (no .terraform-docs.yml found)"; \
+			echo "Skipping $$dir (no main.tf found)"; \
 		fi \
 	done
 

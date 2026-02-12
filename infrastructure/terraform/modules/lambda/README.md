@@ -1,35 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-# Lambda Function Module
-
-Thin wrapper around [terraform-aws-modules/lambda/aws](https://registry.terraform.io/modules/terraform-aws-modules/lambda/aws/latest).
-
-This module provides organization-wide standards for Lambda functions:
-- Naming convention: `{project}-{environment}-{function_name}`
-- Standard tagging with project, environment, and component
-- Environment-based log retention (prod=30 days, others=7 days)
-- VPC integration by default for private subnet execution
-- Automatic network policy attachment when VPC subnets are provided
-
-## What This Module Adds
-
-This wrapper module provides organization-wide standards:
-
-- **Naming convention**: `{project}-{environment}-{resource_name}`
-- **Standard tagging**: Merges project, environment, and component tags
-- **Environment-based defaults**: Configures resources based on environment (production vs staging)
-
-## Usage
-
-```hcl
-module "example" {
-  source = "./modules/MODULE_NAME"
-  
-  context = local.context
-  
-  # Module-specific variables
-}
-```
-
 ## Requirements
 
 No requirements.

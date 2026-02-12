@@ -3,11 +3,6 @@ output "certificate_arn" {
   value       = module.acm.acm_certificate_arn
 }
 
-output "certificate_id" {
-  description = "ID of the ACM certificate"
-  value       = module.acm.acm_certificate_id
-}
-
 output "certificate_domain_name" {
   description = "Primary domain name of the certificate"
   value       = var.domain

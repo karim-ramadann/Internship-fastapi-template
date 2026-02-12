@@ -1,51 +1,8 @@
-# CloudWatch Log Groups for ECS containers
-resource "aws_cloudwatch_log_group" "backend" {
-  name              = "/ecs/${var.context.project}-${var.context.environment}/backend"
-  retention_in_days = var.log_retention_days
-
-  tags = merge(
-    var.context.common_tags,
-    {
-      Name = "${var.context.project}-${var.context.environment}-backend-logs"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "frontend" {
-  name              = "/ecs/${var.context.project}-${var.context.environment}/frontend"
-  retention_in_days = var.log_retention_days
-
-  tags = merge(
-    var.context.common_tags,
-    {
-      Name = "${var.context.project}-${var.context.environment}-frontend-logs"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "adminer" {
-  name              = "/ecs/${var.context.project}-${var.context.environment}/adminer"
-  retention_in_days = var.log_retention_days
-
-  tags = merge(
-    var.context.common_tags,
-    {
-      Name = "${var.context.project}-${var.context.environment}-adminer-logs"
-    }
-  )
-}
-
-resource "aws_cloudwatch_log_group" "prestart" {
-  name              = "/ecs/${var.context.project}-${var.context.environment}/prestart"
-  retention_in_days = var.log_retention_days
-
-  tags = merge(
-    var.context.common_tags,
-    {
-      Name = "${var.context.project}-${var.context.environment}-prestart-logs"
-    }
-  )
-}
+# ==============================================================================
+# Monitoring Module - CloudWatch Alarms
+# ==============================================================================
+# Log groups are managed by the ecs-fargate module (per-container).
+# This module handles alarms only.
 
 # Optional CloudWatch Alarms (enabled for production)
 resource "aws_sns_topic" "alarms" {

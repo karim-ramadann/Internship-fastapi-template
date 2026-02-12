@@ -12,7 +12,7 @@
 
 locals {
   vpc_name = "${var.context.project}-${var.context.environment}-vpc"
-  
+
   tags = merge(
     var.context.common_tags,
     {

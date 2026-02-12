@@ -16,6 +16,8 @@
  */
 
 locals {
+  function_name = "${var.context.project}-${var.context.environment}-${var.function_name}"
+
   # Org-wide log retention standard
   log_retention = var.cloudwatch_logs_retention_in_days != null ? var.cloudwatch_logs_retention_in_days : (
     var.context.environment == "production" ? 30 : 7
@@ -24,7 +26,7 @@ locals {
   tags = merge(
     var.context.common_tags,
     {
-      Name      = var.function_name
+      Name      = local.function_name
       Component = "lambda"
     },
     var.tags
@@ -35,7 +37,7 @@ module "lambda_function" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.0"
 
-  function_name = var.function_name
+  function_name = local.function_name
   description   = var.description
   timeout       = var.timeout
   memory_size   = var.memory_size

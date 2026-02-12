@@ -36,32 +36,32 @@ output "ecr_frontend_repository_url" {
 # ECS Cluster Outputs
 output "ecs_cluster_id" {
   description = "ID of the ECS cluster"
-  value       = module.ecs_cluster.cluster_id
+  value       = module.ecs_fargate.cluster_id
 }
 
 output "ecs_cluster_arn" {
   description = "ARN of the ECS cluster"
-  value       = module.ecs_cluster.cluster_arn
+  value       = module.ecs_fargate.cluster_arn
 }
 
 output "ecs_cluster_name" {
   description = "Name of the ECS cluster"
-  value       = module.ecs_cluster.cluster_name
+  value       = module.ecs_fargate.cluster_name
 }
 
 output "ecs_service_id" {
   description = "ID of the ECS service"
-  value       = aws_ecs_service.app.id
+  value       = module.ecs_fargate.service_id
 }
 
 output "ecs_service_name" {
   description = "Name of the ECS service"
-  value       = aws_ecs_service.app.name
+  value       = module.ecs_fargate.service_name
 }
 
 output "task_definition_arn" {
   description = "ARN of the task definition"
-  value       = aws_ecs_task_definition.app.arn
+  value       = module.ecs_fargate.task_definition_arn
 }
 
 # Service Discovery Outputs
@@ -73,12 +73,7 @@ output "service_discovery_namespace" {
 # CloudWatch Outputs
 output "cloudwatch_log_groups" {
   description = "CloudWatch log group names"
-  value = {
-    backend  = module.monitoring.backend_log_group_name
-    frontend = module.monitoring.frontend_log_group_name
-    adminer  = module.monitoring.adminer_log_group_name
-    prestart = module.monitoring.prestart_log_group_name
-  }
+  value       = module.ecs_fargate.container_log_groups
 }
 
 # Route53 Outputs

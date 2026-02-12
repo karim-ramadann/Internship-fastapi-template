@@ -27,3 +27,9 @@ output "security_group_ids" {
   description = "Security group IDs attached to the load balancer"
   value       = module.alb.security_group_id
 }
+
+# Target group ARNs keyed by the same keys passed in var.target_groups
+output "target_group_arns" {
+  description = "Map of target group key to ARN"
+  value       = { for key, _ in var.target_groups : key => module.alb.target_groups[key].arn }
+}
