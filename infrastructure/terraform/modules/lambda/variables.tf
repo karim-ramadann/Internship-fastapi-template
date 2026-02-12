@@ -19,16 +19,9 @@ variable "description" {
   default     = ""
 }
 
-variable "handler" {
-  description = "Lambda function handler (for Zip packages)"
+variable "image_uri" {
+  description = "ECR image URI for the Lambda function (e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-repo:latest)"
   type        = string
-  default     = "index.handler"
-}
-
-variable "runtime" {
-  description = "Lambda runtime (e.g., python3.11, nodejs20.x)"
-  type        = string
-  default     = "python3.11"
 }
 
 variable "timeout" {
@@ -70,30 +63,6 @@ variable "cloudwatch_logs_retention_in_days" {
   description = "CloudWatch Logs retention in days (defaults to environment-based: prod=30, others=7)"
   type        = number
   default     = null
-}
-
-variable "create_package" {
-  description = "Whether to create a deployment package"
-  type        = bool
-  default     = false
-}
-
-variable "local_existing_package" {
-  description = "Path to an existing local deployment package"
-  type        = string
-  default     = null
-}
-
-variable "image_uri" {
-  description = "ECR image URI for container-based Lambda (recommended for complex dependencies)"
-  type        = string
-  default     = null
-}
-
-variable "package_type" {
-  description = "Lambda deployment package type: Zip or Image"
-  type        = string
-  default     = "Zip"
 }
 
 variable "attach_policy_statements" {
