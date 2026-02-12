@@ -101,7 +101,7 @@ variable "container_definitions" {
         }]
         environment = [{ name = "ENV", value = "staging" }]
         secrets     = [{ name = "SECRET_KEY", valueFrom = "arn:aws:ssm:..." }]
-        cloudwatch_log_group_name = "/ecs/myapp/backend"
+        cloudwatch_log_group_name = "staging/ecs/myapp/backend"
       }
     }
   EOT

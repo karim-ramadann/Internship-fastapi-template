@@ -76,7 +76,7 @@ module "ecs_fargate" {
       environment = local.common_environment_variables
       secrets     = local.common_secrets
 
-      cloudwatch_log_group_name = "/ecs/${local.name_prefix}/prestart"
+      cloudwatch_log_group_name = "${var.environment}/ecs/${var.project}/prestart"
     }
 
     # Backend API
@@ -104,7 +104,7 @@ module "ecs_fargate" {
         { containerName = "prestart", condition = "SUCCESS" }
       ]
 
-      cloudwatch_log_group_name = "/ecs/${local.name_prefix}/backend"
+      cloudwatch_log_group_name = "${var.environment}/ecs/${var.project}/backend"
     }
 
     # Frontend dashboard (nginx serving the SPA)
@@ -117,7 +117,7 @@ module "ecs_fargate" {
         name          = "frontend"
       }]
 
-      cloudwatch_log_group_name = "/ecs/${local.name_prefix}/frontend"
+      cloudwatch_log_group_name = "${var.environment}/ecs/${var.project}/frontend"
     }
 
     # Adminer database management UI
@@ -135,7 +135,7 @@ module "ecs_fargate" {
         { name = "ADMINER_DESIGN", value = "pepa-linha-dark" }
       ]
 
-      cloudwatch_log_group_name = "/ecs/${local.name_prefix}/adminer"
+      cloudwatch_log_group_name = "${var.environment}/ecs/${var.project}/adminer"
     }
   }
 

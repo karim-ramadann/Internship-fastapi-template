@@ -63,6 +63,6 @@ output "container_log_groups" {
   description = "Map of container name to CloudWatch log group name"
   value = {
     for name, _ in var.container_definitions :
-    name => "/ecs/${var.context.project}-${var.context.environment}/${name}"
+    name => "${var.context.environment}/ecs/${var.context.project}/${name}"
   }
 }

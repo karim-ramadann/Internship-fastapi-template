@@ -30,7 +30,7 @@ locals {
 
 # CloudWatch Log Group for Step Functions execution logs
 resource "aws_cloudwatch_log_group" "step_functions" {
-  name              = "/aws/vendedlogs/states/${local.state_machine_name}"
+  name              = "${var.context.environment}/step-functions/${local.state_machine_name}"
   retention_in_days = local.log_retention
   
   tags = local.tags
