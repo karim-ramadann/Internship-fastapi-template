@@ -26,7 +26,7 @@ locals {
 # ==============================================================================
 
 module "cluster" {
-  source = "terraform-aws-modules/ecs/aws//modules/cluster"
+  source = "terraform-aws-modules/ecs/aws/modules/cluster"
   version = "~> 5.0"
 
   cluster_name = "${local.name_prefix}-cluster"
@@ -66,10 +66,10 @@ module "cluster" {
 # ==============================================================================
 
 module "service" {
-  source  = "terraform-aws-modules/ecs/aws//modules/service"
+  source  = "terraform-aws-modules/ecs/aws/modules/service"
   version = "~> 5.0"
 
-  name        = "${local.name_prefix}-app"
+  name        = "${local.name_prefix}-service"
   cluster_arn = module.cluster.arn
 
   # Task definition
@@ -140,7 +140,7 @@ module "service" {
 
   # Task IAM role
   create_tasks_iam_role     = true
-  tasks_iam_role_name       = "${local.name_prefix}-fargate-task"
+  tasks_iam_role_name       = "${local.name_prefix}-fargate-task-role"
   tasks_iam_role_statements = var.tasks_iam_role_statements
 
   # Autoscaling
