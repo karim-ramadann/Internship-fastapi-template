@@ -1,37 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-# EventBridge Module
-
-Thin wrapper around [terraform-aws-modules/eventbridge/aws](https://registry.terraform.io/modules/terraform-aws-modules/eventbridge/aws/latest).
-
-This module provides organization-wide standards for EventBridge:
-- Naming convention: `{project}-{environment}-{bus_name}` for custom event buses
-- Standard tagging with project, environment, and component
-- Support for both default and custom event buses
-- Flexible rule and target configuration
-
-**Note**: Specific event rules and targets should be defined in the root module
-to maintain flexibility and separation of business logic.
-
-## What This Module Adds
-
-This wrapper module provides organization-wide standards:
-
-- **Naming convention**: `{project}-{environment}-{resource_name}`
-- **Standard tagging**: Merges project, environment, and component tags
-- **Environment-based defaults**: Configures resources based on environment (production vs staging)
-
-## Usage
-
-```hcl
-module "example" {
-  source = "./modules/MODULE_NAME"
-  
-  context = local.context
-  
-  # Module-specific variables
-}
-```
-
 ## Requirements
 
 No requirements.

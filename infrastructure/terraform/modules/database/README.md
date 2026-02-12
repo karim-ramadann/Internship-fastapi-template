@@ -28,61 +28,13 @@ module "database" {
 }
 ```
 
-## Inputs
 
-See [variables.tf](./variables.tf) for the full list.
-
-## Outputs
-
-See [outputs.tf](./outputs.tf) for the full list.
 
 ## Upstream Module
 
 - [terraform-aws-modules/rds/aws](https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest)
 
 <!-- BEGIN_TF_DOCS -->
-# Database Module
-
-Thin wrapper around [`terraform-aws-modules/rds/aws`](https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest) for PostgreSQL on RDS.
-
-## What it does
-
-- Creates an RDS PostgreSQL instance with environment-aware defaults (encryption, backups, deletion protection)
-- Creates a DB subnet group from private subnets
-- Generates a random master password and stores credentials in Secrets Manager
-- Enables Performance Insights and Enhanced Monitoring in production
-- Configures auto-scaling storage up to 2x the allocated amount
-- Exports CloudWatch logs for PostgreSQL and upgrade events
-
-## Usage
-
-```hcl
-module "database" {
-  source = "./modules/database"
-
-  context = local.context
-
-  private_subnet_ids    = module.networking.private_subnet_ids
-  rds_security_group_id = module.security.rds_security_group_id
-  rds_instance_class    = "db.t3.micro"
-  rds_allocated_storage = 20
-  db_name               = "app"
-  db_username           = "postgres"
-}
-```
-
-## Inputs
-
-See [variables.tf](./variables.tf) for the full list.
-
-## Outputs
-
-See [outputs.tf](./outputs.tf) for the full list.
-
-## Upstream Module
-
-- [terraform-aws-modules/rds/aws](https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest)
-
 ## Requirements
 
 No requirements.
@@ -114,15 +66,15 @@ No requirements.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_context"></a> [context](#input\_context) | Context object containing project, environment, region, and common tags | <pre>object({<br/>    project     = string<br/>    environment = string<br/>    region      = string<br/>    common_tags = map(string)<br/>  })</pre> | n/a | yes |
+| <a name="input_private_subnet_ids"></a> [private\_subnet\_ids](#input\_private\_subnet\_ids) | List of private subnet IDs for DB subnet group | `list(string)` | n/a | yes |
+| <a name="input_rds_security_group_id"></a> [rds\_security\_group\_id](#input\_rds\_security\_group\_id) | ID of the RDS security group | `string` | n/a | yes |
 | <a name="input_db_name"></a> [db\_name](#input\_db\_name) | Name of the database to create | `string` | `"app"` | no |
 | <a name="input_db_username"></a> [db\_username](#input\_db\_username) | Master username for the database | `string` | `"postgres"` | no |
-| <a name="input_private_subnet_ids"></a> [private\_subnet\_ids](#input\_private\_subnet\_ids) | List of private subnet IDs for DB subnet group | `list(string)` | n/a | yes |
 | <a name="input_rds_allocated_storage"></a> [rds\_allocated\_storage](#input\_rds\_allocated\_storage) | Allocated storage in GB | `number` | `20` | no |
 | <a name="input_rds_backup_retention_days"></a> [rds\_backup\_retention\_days](#input\_rds\_backup\_retention\_days) | Backup retention period in days | `number` | `7` | no |
 | <a name="input_rds_engine_version"></a> [rds\_engine\_version](#input\_rds\_engine\_version) | PostgreSQL engine version | `string` | `"18"` | no |
 | <a name="input_rds_instance_class"></a> [rds\_instance\_class](#input\_rds\_instance\_class) | RDS instance class | `string` | `"db.t3.micro"` | no |
 | <a name="input_rds_multi_az"></a> [rds\_multi\_az](#input\_rds\_multi\_az) | Enable Multi-AZ deployment | `bool` | `false` | no |
-| <a name="input_rds_security_group_id"></a> [rds\_security\_group\_id](#input\_rds\_security\_group\_id) | ID of the RDS security group | `string` | n/a | yes |
 | <a name="input_rds_storage_type"></a> [rds\_storage\_type](#input\_rds\_storage\_type) | Storage type | `string` | `"gp3"` | no |
 
 ## Outputs

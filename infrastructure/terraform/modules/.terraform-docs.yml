@@ -1,6 +1,17 @@
 formatter: "markdown table"
 
-header-from: README.md
+content: |-
+  {{ .Requirements }}
+
+  {{ .Providers }}
+
+  {{ .Modules }}
+
+  {{ .Resources }}
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}
 
 output:
   file: "README.md"

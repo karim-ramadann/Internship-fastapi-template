@@ -41,8 +41,6 @@ module "load_balancer" {
 }
 ```
 
-## Outputs
-
 Target group ARNs are exposed as `target_group_arns["backend"]`, `target_group_arns["frontend"]`, etc.
 Pass these into your ECS service's `load_balancer` blocks.
 
@@ -51,33 +49,6 @@ Pass these into your ECS service's `load_balancer` blocks.
 - [terraform-aws-modules/alb/aws](https://registry.terraform.io/modules/terraform-aws-modules/alb/aws/latest)
 
 <!-- BEGIN_TF_DOCS -->
-# Application Load Balancer Module
-
-Thin wrapper around [terraform-aws-modules/alb/aws](https://registry.terraform.io/modules/terraform-aws-modules/alb/aws/latest).
-
-Manages the ALB, target groups, HTTPS/HTTP listeners, and host-based routing rules.
-Business logic (which hosts route where) is driven by variables, not hardcoded.
-
-## What This Module Adds
-
-This wrapper module provides organization-wide standards:
-
-- **Naming convention**: `{project}-{environment}-{resource_name}`
-- **Standard tagging**: Merges project, environment, and component tags
-- **Environment-based defaults**: Configures resources based on environment (production vs staging)
-
-## Usage
-
-```hcl
-module "example" {
-  source = "./modules/MODULE_NAME"
-  
-  context = local.context
-  
-  # Module-specific variables
-}
-```
-
 ## Requirements
 
 No requirements.
