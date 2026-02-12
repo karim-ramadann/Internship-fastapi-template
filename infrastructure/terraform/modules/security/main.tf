@@ -386,7 +386,7 @@ data "aws_iam_policy_document" "lambda_ssm" {
       "arn:aws:ssm:${var.context.region}:*:parameter/${var.context.environment}/${var.context.project}/*"
     ]
   }
-  
+
   statement {
     effect = "Allow"
     actions = [
@@ -438,7 +438,7 @@ data "aws_iam_policy_document" "step_functions_lambda" {
       "arn:aws:lambda:${var.context.region}:*:function:${var.context.project}-${var.context.environment}-*"
     ]
   }
-  
+
   statement {
     effect = "Allow"
     actions = [

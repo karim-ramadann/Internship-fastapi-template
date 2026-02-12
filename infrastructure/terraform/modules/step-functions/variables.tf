@@ -22,7 +22,7 @@ variable "type" {
   description = "Type of Step Functions state machine: STANDARD or EXPRESS"
   type        = string
   default     = "STANDARD"
-  
+
   validation {
     condition     = contains(["STANDARD", "EXPRESS"], var.type)
     error_message = "Type must be either STANDARD or EXPRESS."
@@ -38,7 +38,7 @@ variable "log_level" {
   description = "CloudWatch Logs log level: ALL, ERROR, FATAL, or OFF"
   type        = string
   default     = "ALL"
-  
+
   validation {
     condition     = contains(["ALL", "ERROR", "FATAL", "OFF"], var.log_level)
     error_message = "Log level must be ALL, ERROR, FATAL, or OFF."
