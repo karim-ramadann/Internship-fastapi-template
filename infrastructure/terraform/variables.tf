@@ -125,12 +125,6 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
-variable "ec2_instance_type" {
-  description = "EC2 instance type for ECS cluster"
-  type        = string
-  default     = "t3.medium"
-}
-
 variable "ecs_desired_count" {
   description = "Desired number of ECS tasks"
   type        = number
@@ -138,15 +132,15 @@ variable "ecs_desired_count" {
 }
 
 variable "task_cpu" {
-  description = "CPU units for the ECS task"
-  type        = string
-  default     = "1024"
+  description = "CPU units for the Fargate task (256, 512, 1024, 2048, 4096)"
+  type        = number
+  default     = 1024
 }
 
 variable "task_memory" {
-  description = "Memory (MiB) for the ECS task"
-  type        = string
-  default     = "2048"
+  description = "Memory (MiB) for the Fargate task"
+  type        = number
+  default     = 2048
 }
 
 variable "enable_service_discovery" {
