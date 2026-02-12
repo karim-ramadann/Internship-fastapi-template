@@ -58,3 +58,61 @@ variable "access_logs" {
   type        = map(string)
   default     = {}
 }
+
+# ------------------------------------------------------------------------------
+# Certificate
+# ------------------------------------------------------------------------------
+
+variable "certificate_arn" {
+  description = "ARN of the ACM certificate for HTTPS listener"
+  type        = string
+}
+
+# ------------------------------------------------------------------------------
+# Target Groups
+# ------------------------------------------------------------------------------
+
+variable "target_groups" {
+  description = <<-EOT
+    Map of target group definitions. Each key becomes part of the TG name.
+    Example:
+    target_groups = {
+      backend = {
+        port              = 8000
+        protocol          = "HTTP"
+        target_type       = "ip"
+        health_check_path = "/api/v1/utils/health-check/"
+      }
+    }
+  EOT
+  type = map(object({
+    port                = number
+    protocol            = optional(string, "HTTP")
+    target_type         = optional(string, "ip")
+    health_check_path   = optional(string, "/")
+    deregistration_delay = optional(number, 30)
+  }))
+  default = {}
+}
+
+# ------------------------------------------------------------------------------
+# Listener Rules (host-based routing)
+# ------------------------------------------------------------------------------
+
+variable "host_rules" {
+  description = <<-EOT
+    Map of host-based routing rules for the HTTPS listener.
+    Each key is a logical name; target_group_key must match a key in var.target_groups.
+    Example:
+    host_rules = {
+      backend  = { host = "api.example.com",       target_group_key = "backend",  priority = 100 }
+      frontend = { host = "dashboard.example.com",  target_group_key = "frontend", priority = 200 }
+    }
+  EOT
+  type = map(object({
+    host             = string
+    target_group_key = string
+    priority         = number
+  }))
+  default = {}
+}
