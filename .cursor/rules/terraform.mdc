@@ -16,8 +16,7 @@ Module structure
 - main.tf: only compose community modules and small glue resources (e.g. IAM or data sources needed to make them work together). [developer.hashicorp](https://developer.hashicorp.com/terraform/tutorials/modules/pattern-module-creation)
 - variables.tf: define all inputs with type and description; prefer explicit types over any. [docs.gruntwork](https://docs.gruntwork.io/guides/style/terraform-style-guide/)
 - outputs.tf: re-expose the underlying module’s outputs with clear descriptions. [docs.gruntwork](https://docs.gruntwork.io/guides/style/terraform-style-guide/)
-- README.md: document purpose, required/optional inputs, outputs, examples, and link to the underlying terraform-aws-module docs. [americanchase](https://americanchase.com/terraform-modules-best-practices/)
-- Provide at least one example under examples/<module-name>/ that calls the wrapper with realistic inputs. [docs.gruntwork](https://docs.gruntwork.io/guides/style/terraform-style-guide/)
+- README.md: document purpose, required/optional inputs, outputs, and link to the underlying terraform-aws-module docs. [americanchase](https://americanchase.com/terraform-modules-best-practices/)
 
 Wrapper module pattern
 - Pattern: a wrapper module should:
@@ -88,13 +87,6 @@ What wrappers must not do
 - Do not add unnecessary levels of indirection; avoid wrapper-on-wrapper unless you are implementing the for_each wrappers pattern. [notes.kodekloud](https://notes.kodekloud.com/docs/Terragrunt-for-Beginners/Terragrunt-Modules/Wrapper-Module-Approach)
 - Do not overuse count or for_each; prefer clear explicit resources where the number of instances is small and static. [developer.hashicorp](https://developer.hashicorp.com/terraform/language/style)
 
-Testing and examples
-- Each wrapper module must have:
-  - An examples/ directory with at least one minimal, runnable example that shows typical usage. [docs.gruntwork](https://docs.gruntwork.io/guides/style/terraform-style-guide/)
-  - Optional: basic tests (e.g. terratest or kitchen-terraform) that run against the example, not directly against modules/. [docs.gruntwork](https://docs.gruntwork.io/guides/style/terraform-style-guide/)
-- Examples should:
-  - Show realistic variable values and how to wire multiple wrapper modules together (e.g. VPC + ECS cluster + service). [americanchase](https://americanchase.com/terraform-modules-best-practices/)
-  - Document any required AWS setup (e.g. existing VPC vs module-created VPC).
 
 Security and policy hooks
 - Wrapper modules should expose inputs required to integrate with security controls (e.g. allowed_cidr_blocks, kms_key_arn, logging buckets) instead of hardcoding them. [stackoverflow](https://stackoverflow.com/questions/33157516/best-practices-when-using-terraform-is-there-any-official-guide-to-it)
@@ -118,7 +110,7 @@ Preferred module examples
   - S3: terraform-aws-modules/s3-bucket/aws with wrapper patterns for multi-bucket scenarios. [deepwiki](https://deepwiki.com/terraform-aws-modules/terraform-aws-s3-bucket/3.3-wrapper-modules)
 - For resources without well-maintained community modules, either:
   - Keep them in the root module, or
-  - Create a focused module that behaves like terraform-aws-modules style (inputs/outputs, examples, versioning). [developer.hashicorp](https://developer.hashicorp.com/terraform/tutorials/modules/pattern-module-creation)
+  - Create a focused module that behaves like terraform-aws-modules style (inputs/outputs, versioning). [developer.hashicorp](https://developer.hashicorp.com/terraform/tutorials/modules/pattern-module-creation)
 
 Root module structure (business logic)
 - Do not keep all root logic in a single main.tf; split by concern while staying in one directory so Terraform still treats it as one root module. [developer.hashicorp](https://developer.hashicorp.com/terraform/tutorials/modules/organize-configuration)
