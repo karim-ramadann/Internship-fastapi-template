@@ -3,7 +3,11 @@
  *
  * Thin wrapper around [terraform-aws-modules/lambda/aws](https://registry.terraform.io/modules/terraform-aws-modules/lambda/aws/latest).
  *
- * This module provides organization-wide standards for Lambda functions:
+ * This module deploys container-image-based Lambda functions only.
+ * The user pushes a Docker image to ECR from the backend repo, and
+ * Terraform deploys the Lambda using that image URI.
+ *
+ * Standards enforced:
  * - Naming convention: `{project}-{environment}-{function_name}`
  * - Standard tagging with project, environment, and component
  * - Environment-based log retention (prod=30 days, others=7 days)
@@ -33,13 +37,15 @@ module "lambda_function" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.0"
 
-  # Pass through terraform-aws-modules/lambda inputs
   function_name = local.function_name
   description   = var.description
-  handler       = var.handler
-  runtime       = var.runtime
   timeout       = var.timeout
   memory_size   = var.memory_size
+
+  # Container image configuration
+  package_type   = "Image"
+  image_uri      = var.image_uri
+  create_package = false
 
   # IAM
   create_role = false
@@ -55,12 +61,6 @@ module "lambda_function" {
 
   # CloudWatch Logs (org standard)
   cloudwatch_logs_retention_in_days = local.log_retention
-
-  # Package configuration
-  create_package         = var.create_package
-  local_existing_package = var.local_existing_package
-  image_uri              = var.image_uri
-  package_type           = var.package_type
 
   # Additional IAM policies
   attach_policy_statements = var.attach_policy_statements
