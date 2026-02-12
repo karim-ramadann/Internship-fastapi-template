@@ -7,14 +7,15 @@ resource "random_password" "db_password" {
 
 # DB Subnet Group
 resource "aws_db_subnet_group" "main" {
-  name        = "${var.context.project}-${var.context.environment}-db-subnet-group"
+  # Naming standard: project-resource-name-env (flat)
+  name        = "${var.context.project}-db-subnet-group-${var.context.environment}"
   description = "DB subnet group for ${var.context.project} ${var.context.environment}"
   subnet_ids  = var.private_subnet_ids
 
   tags = merge(
     var.context.common_tags,
     {
-      Name = "${var.context.project}-${var.context.environment}-db-subnet-group"
+      Name = "${var.context.project}-db-subnet-group-${var.context.environment}"
     }
   )
 }
@@ -24,7 +25,8 @@ module "rds" {
   source  = "terraform-aws-modules/rds/aws"
   version = "~> 6.0"
 
-  identifier = "${var.context.project}-${var.context.environment}-db"
+  # Naming standard: project-resource-name-env (flat)
+  identifier = "${var.context.project}-db-${var.context.environment}"
 
   engine               = "postgres"
   engine_version       = var.rds_engine_version
@@ -55,7 +57,8 @@ module "rds" {
   backup_window             = "03:00-04:00"
   maintenance_window        = "mon:04:00-mon:05:00"
   skip_final_snapshot              = var.context.environment != "production"
-  final_snapshot_identifier_prefix = "${var.context.project}-${var.context.environment}-final-snapshot"
+  # Naming standard: project-resource-name-env (flat)
+  final_snapshot_identifier_prefix = "${var.context.project}-db-final-snapshot-${var.context.environment}"
 
   # Protection
   deletion_protection   = var.context.environment == "production"
@@ -70,13 +73,14 @@ module "rds" {
 
   # Monitoring
   monitoring_interval    = var.context.environment == "production" ? 60 : 0
-  monitoring_role_name   = var.context.environment == "production" ? "${var.context.project}-${var.context.environment}-rds-monitoring-role" : null
+  # Naming standard: project-resource-name-env (flat)
+  monitoring_role_name   = var.context.environment == "production" ? "${var.context.project}-rds-monitoring-role-${var.context.environment}" : null
   create_monitoring_role = var.context.environment == "production"
 
   tags = merge(
     var.context.common_tags,
     {
-      Name = "${var.context.project}-${var.context.environment}-db"
+      Name = "${var.context.project}-db-${var.context.environment}"
     }
   )
 }

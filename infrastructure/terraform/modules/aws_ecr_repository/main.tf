@@ -12,7 +12,8 @@
  */
 
 locals {
-  repository_name = "${var.context.project}-${var.context.environment}-${var.name}"
+  # Naming standard: project-resource-name-env (flat)
+  repository_name = "${var.context.project}-${var.name}-${var.context.environment}"
 
   tags = merge(
     var.context.common_tags,

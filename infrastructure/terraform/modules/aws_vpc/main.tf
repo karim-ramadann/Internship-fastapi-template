@@ -24,7 +24,8 @@
  */
 
 locals {
-  vpc_name = "${var.context.project}-${var.context.environment}-vpc"
+  # Naming standard: project-resource-name-env (flat)
+  vpc_name = "${var.context.project}-vpc-${var.context.environment}"
   
   tags = merge(
     var.context.common_tags,
