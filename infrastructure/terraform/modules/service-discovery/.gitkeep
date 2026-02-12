@@ -1,1 +1,0 @@
-# Service Discovery module
