@@ -1,34 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-# ACM Certificate Module
-
-Thin wrapper around [terraform-aws-modules/acm/aws](https://registry.terraform.io/modules/terraform-aws-modules/acm/aws/latest).
-
-This module provides organization-wide standards for SSL/TLS certificates:
-- Automatic DNS validation via Route53
-- Wildcard certificate support (*.domain.com)
-- Standard tagging with project and environment
-- Automatic validation waiting (no manual intervention)
-
-## What This Module Adds
-
-This wrapper module provides organization-wide standards:
-
-- **Naming convention**: `{project}-{environment}-{resource_name}`
-- **Standard tagging**: Merges project, environment, and component tags
-- **Environment-based defaults**: Configures resources based on environment (production vs staging)
-
-## Usage
-
-```hcl
-module "example" {
-  source = "./modules/MODULE_NAME"
-  
-  context = local.context
-  
-  # Module-specific variables
-}
-```
-
 ## Requirements
 
 No requirements.
@@ -64,7 +34,6 @@ No resources.
 |------|-------------|
 | <a name="output_certificate_arn"></a> [certificate\_arn](#output\_certificate\_arn) | ARN of the validated ACM certificate |
 | <a name="output_certificate_domain_name"></a> [certificate\_domain\_name](#output\_certificate\_domain\_name) | Primary domain name of the certificate |
-| <a name="output_certificate_id"></a> [certificate\_id](#output\_certificate\_id) | ID of the ACM certificate |
 | <a name="output_certificate_status"></a> [certificate\_status](#output\_certificate\_status) | Status of the ACM certificate |
 | <a name="output_distinct_domain_names"></a> [distinct\_domain\_names](#output\_distinct\_domain\_names) | List of distinct domain names for certificate validation |
 | <a name="output_validation_domains"></a> [validation\_domains](#output\_validation\_domains) | List of domains used for certificate validation |

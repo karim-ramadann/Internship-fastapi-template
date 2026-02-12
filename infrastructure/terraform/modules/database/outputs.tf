@@ -31,8 +31,8 @@ output "db_password" {
 }
 
 output "db_instance_id" {
-  description = "ID of the RDS instance"
-  value       = module.rds.db_instance_id
+  description = "Identifier of the RDS instance"
+  value       = module.rds.db_instance_identifier
 }
 
 output "db_instance_arn" {

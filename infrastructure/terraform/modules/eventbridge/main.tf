@@ -15,7 +15,7 @@
 
 locals {
   bus_name = var.create_bus ? "${var.context.project}-${var.context.environment}-${var.bus_name}" : "default"
-  
+
   tags = merge(
     var.context.common_tags,
     {
@@ -28,7 +28,7 @@ locals {
 # Custom Event Bus (optional)
 resource "aws_cloudwatch_event_bus" "this" {
   count = var.create_bus ? 1 : 0
-  
+
   name = local.bus_name
   tags = local.tags
 }
@@ -36,14 +36,14 @@ resource "aws_cloudwatch_event_bus" "this" {
 module "eventbridge" {
   source  = "terraform-aws-modules/eventbridge/aws"
   version = "~> 3.0"
-  
+
   # Use custom bus if created, otherwise default
   create_bus = false
   bus_name   = var.create_bus ? aws_cloudwatch_event_bus.this[0].name : "default"
-  
+
   # Rules and targets (pass through from root)
   rules   = var.rules
   targets = var.targets
-  
+
   tags = local.tags
 }

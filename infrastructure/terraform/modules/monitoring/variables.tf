@@ -8,12 +8,6 @@ variable "context" {
   })
 }
 
-variable "log_retention_days" {
-  description = "CloudWatch log retention period in days"
-  type        = number
-  default     = 7
-}
-
 variable "enable_alarms" {
   description = "Enable CloudWatch alarms"
   type        = bool

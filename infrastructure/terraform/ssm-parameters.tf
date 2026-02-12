@@ -1,18 +1,37 @@
 # SSM Parameters for ECS Task Secrets and Configuration
 
+# Auto-generated secrets
+resource "random_password" "secret_key" {
+  length  = 64
+  special = true
+}
+
+resource "random_password" "first_superuser_password" {
+  length  = 32
+  special = true
+}
+
 # Application Secrets (SecureString)
 resource "aws_ssm_parameter" "secret_key" {
   name  = "/${var.environment}/${var.project}/SECRET_KEY"
   type  = "SecureString"
-  value = var.secret_key
+  value = random_password.secret_key.result
   tags  = local.context.common_tags
+
+  lifecycle {
+    ignore_changes = [value]
+  }
 }
 
 resource "aws_ssm_parameter" "first_superuser_password" {
   name  = "/${var.environment}/${var.project}/FIRST_SUPERUSER_PASSWORD"
   type  = "SecureString"
-  value = var.first_superuser_password
+  value = random_password.first_superuser_password.result
   tags  = local.context.common_tags
+
+  lifecycle {
+    ignore_changes = [value]
+  }
 }
 
 resource "aws_ssm_parameter" "postgres_password" {

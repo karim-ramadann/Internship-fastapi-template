@@ -1,35 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-# Step Functions State Machine Module
-
-Thin wrapper around [terraform-aws-modules/step-functions/aws](https://registry.terraform.io/modules/terraform-aws-modules/step-functions/aws/latest).
-
-This module provides organization-wide standards for Step Functions:
-- Naming convention: `{project}-{environment}-{state_machine_name}`
-- Standard tagging with project, environment, and component
-- Environment-based log retention (prod=30 days, others=7 days)
-- CloudWatch Logs integration with structured logging
-- Configurable execution data inclusion for non-production environments
-
-## What This Module Adds
-
-This wrapper module provides organization-wide standards:
-
-- **Naming convention**: `{project}-{environment}-{resource_name}`
-- **Standard tagging**: Merges project, environment, and component tags
-- **Environment-based defaults**: Configures resources based on environment (production vs staging)
-
-## Usage
-
-```hcl
-module "example" {
-  source = "./modules/MODULE_NAME"
-  
-  context = local.context
-  
-  # Module-specific variables
-}
-```
-
 ## Requirements
 
 No requirements.

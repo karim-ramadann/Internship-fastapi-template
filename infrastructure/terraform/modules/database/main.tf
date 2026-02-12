@@ -1,7 +1,7 @@
 # Random password for RDS master user
 resource "random_password" "db_password" {
-  length  = 32
-  special = true
+  length           = 32
+  special          = true
   override_special = "!#$%&*()-_=+[]{}:?"
 }
 
@@ -51,26 +51,26 @@ module "rds" {
   publicly_accessible    = false
 
   # Backup
-  backup_retention_period = var.rds_backup_retention_days
-  backup_window           = "03:00-04:00"
-  maintenance_window      = "mon:04:00-mon:05:00"
-  skip_final_snapshot     = var.context.environment != "production"
-  final_snapshot_identifier = var.context.environment == "production" ? "${var.context.project}-${var.context.environment}-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}" : null
+  backup_retention_period   = var.rds_backup_retention_days
+  backup_window             = "03:00-04:00"
+  maintenance_window        = "mon:04:00-mon:05:00"
+  skip_final_snapshot              = var.context.environment != "production"
+  final_snapshot_identifier_prefix = "${var.context.project}-${var.context.environment}-final-snapshot"
 
   # Protection
-  deletion_protection = var.context.environment == "production"
+  deletion_protection   = var.context.environment == "production"
   copy_tags_to_snapshot = true
 
   # CloudWatch Logs
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
 
   # Performance Insights
-  performance_insights_enabled    = var.context.environment == "production"
+  performance_insights_enabled          = var.context.environment == "production"
   performance_insights_retention_period = var.context.environment == "production" ? 7 : null
 
   # Monitoring
-  monitoring_interval = var.context.environment == "production" ? 60 : 0
-  monitoring_role_name = var.context.environment == "production" ? "${var.context.project}-${var.context.environment}-rds-monitoring-role" : null
+  monitoring_interval    = var.context.environment == "production" ? 60 : 0
+  monitoring_role_name   = var.context.environment == "production" ? "${var.context.project}-${var.context.environment}-rds-monitoring-role" : null
   create_monitoring_role = var.context.environment == "production"
 
   tags = merge(
