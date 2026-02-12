@@ -55,8 +55,5 @@ frontend_image_tag = "latest"
 
 # Common Tags
 common_tags = {
-  Environment = "staging"
-  Project     = "fastapi"
-  ManagedBy   = "terraform"
-  Owner       = "DevOps"
+  Owner = "DevOps"
 }
