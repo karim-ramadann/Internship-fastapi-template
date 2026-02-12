@@ -46,7 +46,7 @@ task_memory               = 2048
 ecs_desired_count         = 1 # Can be increased for high availability
 rds_instance_class        = "db.t3.small"
 rds_allocated_storage     = 50
-rds_multi_az              = true # Multi-AZ for high availability
+rds_multi_az              = false # Multi-AZ for high availability
 rds_backup_retention_days = 7    # 7 days backup retention
 
 # Docker Image Tags (defaults to "latest", overridden by CI/CD)
