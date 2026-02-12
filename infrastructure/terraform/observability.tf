@@ -8,8 +8,7 @@ module "monitoring" {
 
   context = local.context
 
-  log_retention_days = local.log_retention_days
-  enable_alarms      = local.enable_alarms
+  enable_alarms    = local.enable_alarms
   ecs_cluster_name   = module.ecs_fargate.cluster_name
   ecs_service_name   = module.ecs_fargate.service_name
   alb_arn_suffix     = module.load_balancer.alb_arn_suffix
