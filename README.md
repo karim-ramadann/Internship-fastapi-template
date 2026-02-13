@@ -216,7 +216,8 @@ Frontend docs: [frontend/README.md](./frontend/README.md).
 
 ## Deployment
 
-Deployment docs: [deployment.md](./deployment.md).
+- **AWS ECS + Terraform (Recommended)**: [infrastructure/terraform/README.md](./infrastructure/terraform/README.md) — Production-ready deployment with ECS on EC2, ALB, RDS, CloudWatch, and complete CI/CD via GitHub Actions. Terraform manages all infrastructure with no drift.
+- **Docker Compose + Traefik**: [deployment.md](./deployment.md) — Alternative deployment to a remote server with Traefik for HTTPS.
 
 ## Development
 

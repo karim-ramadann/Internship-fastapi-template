@@ -1,5 +1,23 @@
 # FastAPI Project - Deployment
 
+## Deployment Options
+
+This project supports multiple deployment strategies:
+
+1. **AWS ECS + Terraform (Recommended for Production)**: Complete production-ready infrastructure with ECS on EC2, Application Load Balancer, RDS, CloudWatch monitoring, and automated CI/CD. All infrastructure managed as code with zero drift.
+   - See **[infrastructure/terraform/README.md](infrastructure/terraform/README.md)** for complete setup guide
+
+2. **Docker Compose + Traefik**: Simpler deployment to a single remote server with Traefik handling HTTPS. Good for small projects or development servers.
+   - Instructions below in this document
+
+---
+
+## Docker Compose + Traefik Deployment
+
+This section describes **Docker Compose + Traefik** deployment to a remote server.
+
+---
+
 You can deploy the project using Docker Compose to a remote server.
 
 This project expects you to have a Traefik proxy handling communication to the outside world and HTTPS certificates.

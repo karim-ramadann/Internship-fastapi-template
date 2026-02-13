@@ -5,3 +5,19 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+!**/environments/**/*.tfvars
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+.kiro

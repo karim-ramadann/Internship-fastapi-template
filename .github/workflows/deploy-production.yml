@@ -7,26 +7,95 @@
 
 # jobs:
 #   deploy:
-#     # Do not deploy in the main repository, only in user projects
 #     if: github.repository_owner != 'fastapi'
-#     runs-on:
-#       - self-hosted
-#       - production
+#     runs-on: ubuntu-latest
+#     environment: production  # GitHub environment protection
 #     env:
+#       AWS_REGION: ${{ secrets.AWS_REGION }}
+#       ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+#       PROJECT: full-stack-fastapi-project
 #       ENVIRONMENT: production
-#       DOMAIN: ${{ secrets.DOMAIN_PRODUCTION }}
-#       STACK_NAME: ${{ secrets.STACK_NAME_PRODUCTION }}
-#       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-#       FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
-#       FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
-#       SMTP_HOST: ${{ secrets.SMTP_HOST }}
-#       SMTP_USER: ${{ secrets.SMTP_USER }}
-#       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-#       EMAILS_FROM_EMAIL: ${{ secrets.EMAILS_FROM_EMAIL }}
-#       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-#       SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 #     steps:
 #       - name: Checkout
 #         uses: actions/checkout@v6
-#       - run: docker compose -f compose.yml --project-name ${{ secrets.STACK_NAME_PRODUCTION }} build
-#       - run: docker compose -f compose.yml --project-name ${{ secrets.STACK_NAME_PRODUCTION }} up -d
+
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
+
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
+
+#       - name: Get short SHA
+#         id: vars
+#         run: echo "short_sha=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+#       - name: Build and push backend image
+#         env:
+#           ECR_REPOSITORY: ${{ env.PROJECT }}-${{ env.ENVIRONMENT }}-backend
+#           IMAGE_TAG: ${{ env.ENVIRONMENT }}-${{ steps.vars.outputs.short_sha }}
+#         run: |
+#           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+#             -f backend/Dockerfile .
+#           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+#       - name: Build and push frontend image
+#         env:
+#           ECR_REPOSITORY: ${{ env.PROJECT }}-${{ env.ENVIRONMENT }}-frontend
+#           IMAGE_TAG: ${{ env.ENVIRONMENT }}-${{ steps.vars.outputs.short_sha }}
+#           VITE_API_URL: https://api.${{ secrets.DOMAIN_PRODUCTION }}
+#         run: |
+#           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+#             --build-arg VITE_API_URL=$VITE_API_URL \
+#             -f frontend/Dockerfile .
+#           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.5.0
+
+#       - name: Terraform Init
+#         run: |
+#           cd infrastructure/terraform
+#           terraform init -backend-config=environments/production/backend.hcl
+
+#       - name: Terraform Apply with new image tags
+#         run: |
+#           cd infrastructure/terraform
+#           terraform apply -auto-approve \
+#             -var-file=environments/production/terraform.tfvars \
+#             -var="backend_image_tag=${{ env.ENVIRONMENT }}-${{ steps.vars.outputs.short_sha }}" \
+#             -var="frontend_image_tag=${{ env.ENVIRONMENT }}-${{ steps.vars.outputs.short_sha }}"
+
+#       - name: Get ECS cluster and service names
+#         id: ecs_info
+#         run: |
+#           cd infrastructure/terraform
+#           echo "cluster_name=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_OUTPUT
+#           echo "service_name=$(terraform output -raw ecs_service_name)" >> $GITHUB_OUTPUT
+
+#       - name: Wait for ECS deployment to stabilize
+#         run: |
+#           aws ecs wait services-stable \
+#             --cluster ${{ steps.ecs_info.outputs.cluster_name }} \
+#             --services ${{ steps.ecs_info.outputs.service_name }}
+
+#       - name: Verify deployment
+#         run: |
+#           SERVICE_STATUS=$(aws ecs describe-services \
+#             --cluster ${{ steps.ecs_info.outputs.cluster_name }} \
+#             --services ${{ steps.ecs_info.outputs.service_name }} \
+#             --query 'services[0].runningCount' \
+#             --output text)
+          
+#           if [ "$SERVICE_STATUS" -lt "1" ]; then
+#             echo "Service is not running properly"
+#             exit 1
+#           fi
+          
+#           echo "Production deployment successful! Service running $SERVICE_STATUS tasks with image tag ${{ env.ENVIRONMENT }}-${{ steps.vars.outputs.short_sha }}"

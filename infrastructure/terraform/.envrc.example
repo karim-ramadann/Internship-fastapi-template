@@ -1,0 +1,17 @@
+# Example environment variables for Terraform
+# Copy this file to .envrc and update with your values
+# If using direnv, run: direnv allow
+
+# AWS Configuration
+export AWS_REGION=eu-west-1
+export AWS_PROFILE=default
+
+# Secrets are now managed via SSM Parameter Store (SecureString).
+# Pre-populate them before running Terraform:
+#   aws ssm put-parameter --name "/{env}/{project}/secret_key" --type SecureString --value "..."
+#   aws ssm put-parameter --name "/{env}/{project}/first_superuser_password" --type SecureString --value "..."
+#   aws ssm put-parameter --name "/{env}/{project}/smtp_password" --type SecureString --value "..."
+
+# Optional: Backend configuration
+# export TF_BACKEND_BUCKET="digico-fullstack-tfstate-bucket-development"
+# export TF_BACKEND_REGION="eu-west-1"

@@ -1,0 +1,5 @@
+# Trivy ignore file for Terraform security scanning
+# Add rule IDs here that you want to suppress with justification
+
+# Example:
+# AVD-AWS-0057  # Suppress: We intentionally use HTTP for internal ALB traffic
