@@ -72,7 +72,7 @@ export TF_VAR_smtp_password="smtp-password"  # Optional if not using email
 
 ```bash
 cd infrastructure/terraform/runtime
-terraform init -backend-config="key=runtime/environments/dev/terraform.tfstate"
+terraform init -backend-config=environments/dev/backend.hcl
 ```
 
 ### 2. Deploy Infrastructure
