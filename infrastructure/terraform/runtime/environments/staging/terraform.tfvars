@@ -27,12 +27,12 @@ rds_multi_az              = false # Can be enabled if needed
 rds_backup_retention_days = 14
 
 # ECS Configuration
-ecs_desired_count = 0 # Set to 0 for initial deploy (no image in ECR yet). Change to 1 after pushing backend image.
+ecs_desired_count = 1
 task_cpu          = 512  # 0.5 vCPU
 task_memory       = 1024 # 1 GB
 
 # Auto-scaling Configuration
-enable_autoscaling       = false # Enable after first deployment with backend image
+enable_autoscaling       = true
 autoscaling_min_capacity = 1
 autoscaling_max_capacity = 3
 
