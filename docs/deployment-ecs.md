@@ -316,3 +316,19 @@ After deployment, access your application at:
 - **Adminer**: `https://adminer.{domain}` (if enabled)
 
 Replace `{domain}` with your actual domain (e.g., `staging.example.com` or `example.com`).
+
+---
+
+## TODO: Custom Domain & HTTPS (Staging)
+
+Currently staging has no hosted zone and runs on the ALB public DNS over HTTP
+with `BACKEND_CORS_ORIGINS = "*"`.
+
+Before going live:
+
+1. Provision an ACM certificate in `eu-west-1` for your domain.
+2. Set `acm_certificate_arn` in `environments/staging/terraform.tfvars`.
+3. Update `domain`, `frontend_host`, and `backend_cors_origins` to the real
+   domain (e.g. `https://staging.yourdomain.com`).
+4. Re-apply Terraform — ALB switches to HTTPS with HTTP→HTTPS redirect
+   automatically.

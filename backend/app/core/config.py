@@ -17,7 +17,10 @@ from typing_extensions import Self
 
 def parse_cors(v: Any) -> list[str] | str:
     if isinstance(v, str) and not v.startswith("["):
-        return [i.strip() for i in v.split(",") if i.strip()]
+        items = [i.strip() for i in v.split(",") if i.strip()]
+        if items == ["*"]:
+            return ["*"]
+        return items
     elif isinstance(v, list | str):
         return v
     raise ValueError(v)
@@ -44,9 +47,12 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def all_cors_origins(self) -> list[str]:
-        return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [
-            self.FRONTEND_HOST
-        ]
+        if self.BACKEND_CORS_ORIGINS == ["*"]:
+            return ["*"]
+        origins = [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS]
+        if self.FRONTEND_HOST:
+            origins.append(self.FRONTEND_HOST)
+        return origins
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
