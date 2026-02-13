@@ -1,0 +1,16 @@
+# Example environment variables for Terraform
+# Copy this file to .envrc and update with your values
+# If using direnv, run: direnv allow
+
+# AWS Configuration
+export AWS_REGION=eu-west-1
+export AWS_PROFILE=default
+
+# Terraform Secrets (Required)
+export TF_VAR_secret_key="your-secret-key-here-change-this"
+export TF_VAR_first_superuser_password="your-admin-password-change-this"
+export TF_VAR_smtp_password="your-smtp-password-or-leave-empty"
+
+# Optional: Backend configuration
+# export TF_BACKEND_BUCKET="digico-fullstack-tfstate-bucket-development"
+# export TF_BACKEND_REGION="eu-west-1"

@@ -47,17 +47,17 @@ Or manually from the runtime directory:
 
 ```bash
 # Development
-terraform init -backend-config="key=runtime/dev/terraform.tfstate"
+terraform init -backend-config="key=runtime/environments/dev/terraform.tfstate"
 terraform plan -var-file=environments/dev/terraform.tfvars
 terraform apply -var-file=environments/dev/terraform.tfvars
 
 # Staging
-terraform init -backend-config="key=runtime/staging/terraform.tfstate"
+terraform init -backend-config="key=runtime/environments/staging/terraform.tfstate"
 terraform plan -var-file=environments/staging/terraform.tfvars
 terraform apply -var-file=environments/staging/terraform.tfvars
 
 # Production
-terraform init -backend-config="key=runtime/production/terraform.tfstate"
+terraform init -backend-config="key=runtime/environments/production/terraform.tfstate"
 terraform plan -var-file=environments/production/terraform.tfvars
 terraform apply -var-file=environments/production/terraform.tfvars
 ```
@@ -127,7 +127,7 @@ To add a new environment (e.g., `qa`):
 3. Add Make targets to the main Makefile:
    ```makefile
    init-qa:
-       cd runtime && terraform init -backend-config="key=runtime/qa/terraform.tfstate"
+       cd runtime && terraform init -backend-config="key=runtime/environments/qa/terraform.tfstate"
    
    plan-qa:
        cd runtime && terraform plan -var-file=environments/qa/terraform.tfvars

@@ -1,4 +1,4 @@
-.PHONY: help init-dev init-staging init-production plan-dev plan-staging plan-production apply-dev apply-staging apply-production destroy-dev destroy-staging destroy-production fmt validate docs docs-modules docs-runtime clean
+.PHONY: help init-dev init-staging init-production plan-dev plan-staging plan-production apply-dev apply-staging apply-production destroy-dev destroy-staging destroy-production fmt validate docs docs-modules docs-runtime clean trivy trivy-runtime trivy-modules trivy-all
 
 # Default environment
 ENV ?= dev
@@ -41,11 +41,18 @@ help:
 	@echo "  docs-runtime      - Generate documentation for runtime only"
 	@echo "  clean             - Clean Terraform cache files from runtime"
 	@echo ""
+	@echo "$(YELLOW)Security scanning:$(NC)"
+	@echo "  trivy             - Scan runtime for security issues (recommended)"
+	@echo "  trivy-runtime     - Scan runtime directory only"
+	@echo "  trivy-modules     - Scan modules directory only"
+	@echo "  trivy-all         - Scan both runtime and modules with detailed output"
+	@echo ""
 	@echo "$(YELLOW)Examples:$(NC)"
 	@echo "  make init-dev                    # Initialize dev environment"
 	@echo "  make plan-dev                    # Plan dev deployment"
 	@echo "  make apply-staging               # Apply staging changes"
 	@echo "  make fmt                         # Format all .tf files"
+	@echo "  make trivy                       # Security scan runtime"
 
 # ============================================================================
 # Development Environment
@@ -53,7 +60,7 @@ help:
 
 init-dev:
 	@echo "$(BLUE)Initializing Terraform for development environment...$(NC)"
-	cd runtime && terraform init -backend-config="key=runtime/dev/terraform.tfstate"
+	cd runtime && terraform init -backend-config="key=runtime/environments/dev/terraform.tfstate"
 
 plan-dev:
 	@echo "$(BLUE)Planning Terraform changes for development environment...$(NC)"
@@ -74,7 +81,7 @@ destroy-dev:
 
 init-staging:
 	@echo "$(BLUE)Initializing Terraform for staging environment...$(NC)"
-	cd runtime && terraform init -backend-config="key=runtime/staging/terraform.tfstate"
+	cd runtime && terraform init -backend-config="key=runtime/environments/staging/terraform.tfstate"
 
 plan-staging:
 	@echo "$(BLUE)Planning Terraform changes for staging environment...$(NC)"
@@ -95,7 +102,7 @@ destroy-staging:
 
 init-production:
 	@echo "$(BLUE)Initializing Terraform for production environment...$(NC)"
-	cd runtime && terraform init -backend-config="key=runtime/production/terraform.tfstate"
+	cd runtime && terraform init -backend-config="key=runtime/environments/production/terraform.tfstate"
 
 plan-production:
 	@echo "$(BLUE)Planning Terraform changes for production environment...$(NC)"
@@ -186,6 +193,85 @@ clean:
 	cd runtime && rm -f terraform.tfstate.backup
 	cd runtime && rm -f crash.log
 	@echo "$(GREEN)Clean complete!$(NC)"
+
+# ============================================================================
+# Security Scanning with Trivy
+# ============================================================================
+
+# Scan runtime directory (recommended - fast and focused)
+trivy: trivy-runtime
+
+trivy-runtime:
+	@echo "$(BLUE)Scanning runtime infrastructure for security issues...$(NC)"
+	@if command -v trivy >/dev/null 2>&1; then \
+		trivy config runtime/ \
+			--severity CRITICAL,HIGH,MEDIUM \
+			--exit-code 0 \
+			--format table; \
+		echo ""; \
+		echo "$(GREEN)Runtime security scan complete!$(NC)"; \
+		echo "$(YELLOW)Tip: Run 'make trivy-all' for detailed scanning including modules$(NC)"; \
+	else \
+		echo "$(RED)trivy is not installed.$(NC)"; \
+		echo "Install it from: https://aquasecurity.github.io/trivy/"; \
+		echo "  macOS: brew install trivy"; \
+		echo "  Linux: https://aquasecurity.github.io/trivy/latest/getting-started/installation/"; \
+		exit 1; \
+	fi
+
+trivy-modules:
+	@echo "$(BLUE)Scanning modules for security issues...$(NC)"
+	@if command -v trivy >/dev/null 2>&1; then \
+		trivy config modules/ \
+			--severity CRITICAL,HIGH,MEDIUM \
+			--exit-code 0 \
+			--format table; \
+		echo ""; \
+		echo "$(GREEN)Modules security scan complete!$(NC)"; \
+	else \
+		echo "$(RED)trivy is not installed.$(NC)"; \
+		echo "Install it from: https://aquasecurity.github.io/trivy/"; \
+		exit 1; \
+	fi
+
+trivy-all:
+	@echo "$(BLUE)Running comprehensive security scan...$(NC)"
+	@if command -v trivy >/dev/null 2>&1; then \
+		echo ""; \
+		echo "$(YELLOW)Scanning runtime infrastructure...$(NC)"; \
+		trivy config runtime/ \
+			--severity CRITICAL,HIGH,MEDIUM,LOW \
+			--exit-code 0 \
+			--format table \
+			--ignorefile .trivyignore; \
+		echo ""; \
+		echo "$(YELLOW)Scanning modules...$(NC)"; \
+		trivy config modules/ \
+			--severity CRITICAL,HIGH,MEDIUM,LOW \
+			--exit-code 0 \
+			--format table \
+			--ignorefile .trivyignore; \
+		echo ""; \
+		echo "$(GREEN)Comprehensive security scan complete!$(NC)"; \
+	else \
+		echo "$(RED)trivy is not installed.$(NC)"; \
+		echo "Install it from: https://aquasecurity.github.io/trivy/"; \
+		exit 1; \
+	fi
+
+# Trivy scan with CI/CD mode (fails on critical/high issues)
+trivy-ci:
+	@echo "$(BLUE)Running Trivy scan in CI/CD mode...$(NC)"
+	@if command -v trivy >/dev/null 2>&1; then \
+		trivy config runtime/ \
+			--severity CRITICAL,HIGH \
+			--exit-code 1 \
+			--format table \
+			--ignorefile .trivyignore; \
+	else \
+		echo "$(RED)trivy is not installed.$(NC)"; \
+		exit 1; \
+	fi
 
 # ============================================================================
 # Utility Commands
