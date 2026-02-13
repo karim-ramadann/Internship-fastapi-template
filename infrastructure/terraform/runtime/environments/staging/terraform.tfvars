@@ -27,19 +27,22 @@ rds_multi_az              = false # Can be enabled if needed
 rds_backup_retention_days = 14
 
 # ECS Configuration
-ecs_desired_count = 1
+ecs_desired_count = 0 # Set to 0 for initial deploy (no image in ECR yet). Change to 1 after pushing backend image.
 task_cpu          = 512  # 0.5 vCPU
 task_memory       = 1024 # 1 GB
 
 # Auto-scaling Configuration
-enable_autoscaling       = true
+enable_autoscaling       = false # Enable after first deployment with backend image
 autoscaling_min_capacity = 1
 autoscaling_max_capacity = 3
 
 # Application Configuration
-domain               = "staging.example.com"
-frontend_host        = "https://staging.example.com"
-backend_cors_origins = "https://staging.example.com"
+# No hosted zone available — use ALB DNS name directly.
+# After apply, get the ALB DNS from: terraform output alb_dns_name
+# Update these values once you have the ALB DNS or set up a domain later.
+domain               = ""
+frontend_host        = ""
+backend_cors_origins = "*"
 first_superuser      = "admin@example.com"
 emails_from_email    = "noreply@example.com"
 
