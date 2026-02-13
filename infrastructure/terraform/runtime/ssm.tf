@@ -18,7 +18,7 @@ resource "random_password" "secret_key" {
 resource "random_password" "first_superuser_password" {
   length           = 32
   special          = true
-  override_special = "!@#$%^&*"
+  override_special = "!_-"
 
   lifecycle {
     ignore_changes = [length, special, override_special]
