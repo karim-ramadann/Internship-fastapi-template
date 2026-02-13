@@ -1,0 +1,77 @@
+formatter: "markdown table"
+
+header-from: main.tf
+footer-from: ""
+
+sections:
+  show:
+    - header
+    - requirements
+    - providers
+    - modules
+    - resources
+    - inputs
+    - outputs
+
+content: |-
+  {{ .Header }}
+  
+  ## Infrastructure Overview
+  
+  This runtime infrastructure configuration deploys a complete AWS environment with:
+  
+  - **Networking**: VPC with public/private/database subnets across 2 AZs
+  - **Compute**: ECS Fargate cluster with auto-scaling
+  - **Load Balancing**: Application Load Balancer with health checks
+  - **Database**: RDS PostgreSQL with automated backups and encryption
+  - **Container Registry**: ECR for Docker images
+  - **Security**: Security groups, IAM roles, secrets management
+  - **Monitoring**: CloudWatch logs for all services
+  
+  ## Environment Configuration
+  
+  Each environment (dev, staging, production) has its own:
+  - Terraform state file in S3
+  - Variable configuration in `environments/{env}/terraform.tfvars`
+  - Independent deployment lifecycle
+  
+  See [NAMING.md](NAMING.md) for resource naming conventions.
+  
+  {{ .Requirements }}
+  
+  {{ .Providers }}
+  
+  {{ .Modules }}
+  
+  {{ .Resources }}
+  
+  {{ .Inputs }}
+  
+  {{ .Outputs }}
+
+output:
+  file: "README.md"
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+sort:
+  enabled: true
+  by: required
+
+settings:
+  anchor: true
+  color: true
+  default: true
+  description: true
+  escape: true
+  hide-empty: false
+  html: true
+  indent: 2
+  lockfile: true
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true

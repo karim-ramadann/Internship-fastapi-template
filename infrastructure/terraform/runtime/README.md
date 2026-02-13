@@ -320,3 +320,142 @@ For issues or questions:
 ## License
 
 This infrastructure code is part of the Full Stack FastAPI Project.
+
+<!-- BEGIN_TF_DOCS -->
+
+
+## Infrastructure Overview
+
+This runtime infrastructure configuration deploys a complete AWS environment with:
+
+- **Networking**: VPC with public/private/database subnets across 2 AZs
+- **Compute**: ECS Fargate cluster with auto-scaling
+- **Load Balancing**: Application Load Balancer with health checks
+- **Database**: RDS PostgreSQL with automated backups and encryption
+- **Container Registry**: ECR for Docker images
+- **Security**: Security groups, IAM roles, secrets management
+- **Monitoring**: CloudWatch logs for all services
+
+## Environment Configuration
+
+Each environment (dev, staging, production) has its own:
+- Terraform state file in S3
+- Variable configuration in `environments/{env}/terraform.tfvars`
+- Independent deployment lifecycle
+
+See [NAMING.md](NAMING.md) for resource naming conventions.
+
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.6 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_alb"></a> [alb](#module\_alb) | terraform-aws-modules/alb/aws | ~> 9.0 |
+| <a name="module_alb_security_group"></a> [alb\_security\_group](#module\_alb\_security\_group) | terraform-aws-modules/security-group/aws | ~> 5.0 |
+| <a name="module_database"></a> [database](#module\_database) | ../modules/database | n/a |
+| <a name="module_ecr_backend"></a> [ecr\_backend](#module\_ecr\_backend) | ../modules/aws_ecr_repository | n/a |
+| <a name="module_ecs_cluster"></a> [ecs\_cluster](#module\_ecs\_cluster) | ../modules/aws_ecs_cluster | n/a |
+| <a name="module_ecs_security_group"></a> [ecs\_security\_group](#module\_ecs\_security\_group) | terraform-aws-modules/security-group/aws | ~> 5.0 |
+| <a name="module_ecs_service_backend"></a> [ecs\_service\_backend](#module\_ecs\_service\_backend) | ../modules/aws_ecs_service | n/a |
+| <a name="module_rds_security_group"></a> [rds\_security\_group](#module\_rds\_security\_group) | terraform-aws-modules/security-group/aws | ~> 5.0 |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | ../modules/aws_vpc | n/a |
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_secretsmanager_secret.app_secrets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret) | resource |
+| [aws_secretsmanager_secret_version.app_secrets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret_version) | resource |
+| [aws_security_group_rule.alb_to_ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
+| [aws_security_group_rule.ecs_to_rds](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region for all resources | `string` | n/a | yes |
+| <a name="input_backend_cors_origins"></a> [backend\_cors\_origins](#input\_backend\_cors\_origins) | Allowed CORS origins (comma-separated) | `string` | n/a | yes |
+| <a name="input_domain"></a> [domain](#input\_domain) | Base domain for the application | `string` | n/a | yes |
+| <a name="input_emails_from_email"></a> [emails\_from\_email](#input\_emails\_from\_email) | Email address to send from | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, staging, production) | `string` | n/a | yes |
+| <a name="input_first_superuser"></a> [first\_superuser](#input\_first\_superuser) | Email for first superuser | `string` | n/a | yes |
+| <a name="input_first_superuser_password"></a> [first\_superuser\_password](#input\_first\_superuser\_password) | Password for first superuser | `string` | n/a | yes |
+| <a name="input_frontend_host"></a> [frontend\_host](#input\_frontend\_host) | Frontend URL for email links | `string` | n/a | yes |
+| <a name="input_secret_key"></a> [secret\_key](#input\_secret\_key) | Backend secret key for JWT tokens | `string` | n/a | yes |
+| <a name="input_autoscaling_max_capacity"></a> [autoscaling\_max\_capacity](#input\_autoscaling\_max\_capacity) | Maximum number of tasks for auto-scaling | `number` | `10` | no |
+| <a name="input_autoscaling_min_capacity"></a> [autoscaling\_min\_capacity](#input\_autoscaling\_min\_capacity) | Minimum number of tasks for auto-scaling | `number` | `1` | no |
+| <a name="input_backend_image_tag"></a> [backend\_image\_tag](#input\_backend\_image\_tag) | Docker image tag for backend (e.g., latest, v1.0.0) | `string` | `"latest"` | no |
+| <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Common tags to apply to all resources | `map(string)` | `{}` | no |
+| <a name="input_db_name"></a> [db\_name](#input\_db\_name) | Database name | `string` | `"app"` | no |
+| <a name="input_db_username"></a> [db\_username](#input\_db\_username) | Database master username | `string` | `"postgres"` | no |
+| <a name="input_ecr_repository_name"></a> [ecr\_repository\_name](#input\_ecr\_repository\_name) | Name for the ECR repository | `string` | `"backend"` | no |
+| <a name="input_ecs_desired_count"></a> [ecs\_desired\_count](#input\_ecs\_desired\_count) | Desired number of ECS tasks | `number` | `1` | no |
+| <a name="input_enable_autoscaling"></a> [enable\_autoscaling](#input\_enable\_autoscaling) | Enable auto-scaling for ECS service | `bool` | `false` | no |
+| <a name="input_one_nat_gateway_per_az"></a> [one\_nat\_gateway\_per\_az](#input\_one\_nat\_gateway\_per\_az) | Create one NAT Gateway per availability zone (recommended for production) | `bool` | `false` | no |
+| <a name="input_project"></a> [project](#input\_project) | Project name | `string` | `"full-stack-fastapi-project"` | no |
+| <a name="input_rds_allocated_storage"></a> [rds\_allocated\_storage](#input\_rds\_allocated\_storage) | RDS allocated storage in GB | `number` | `20` | no |
+| <a name="input_rds_backup_retention_days"></a> [rds\_backup\_retention\_days](#input\_rds\_backup\_retention\_days) | RDS backup retention period in days | `number` | `7` | no |
+| <a name="input_rds_instance_class"></a> [rds\_instance\_class](#input\_rds\_instance\_class) | RDS instance class | `string` | `"db.t3.micro"` | no |
+| <a name="input_rds_multi_az"></a> [rds\_multi\_az](#input\_rds\_multi\_az) | Enable Multi-AZ deployment for RDS | `bool` | `false` | no |
+| <a name="input_sentry_dsn"></a> [sentry\_dsn](#input\_sentry\_dsn) | Sentry DSN for error tracking | `string` | `""` | no |
+| <a name="input_single_nat_gateway"></a> [single\_nat\_gateway](#input\_single\_nat\_gateway) | Use a single NAT Gateway for all private subnets (cost-effective for dev/staging) | `bool` | `true` | no |
+| <a name="input_smtp_host"></a> [smtp\_host](#input\_smtp\_host) | SMTP server host | `string` | `""` | no |
+| <a name="input_smtp_password"></a> [smtp\_password](#input\_smtp\_password) | SMTP server password | `string` | `""` | no |
+| <a name="input_smtp_port"></a> [smtp\_port](#input\_smtp\_port) | SMTP server port | `number` | `587` | no |
+| <a name="input_smtp_ssl"></a> [smtp\_ssl](#input\_smtp\_ssl) | Enable SSL for SMTP | `bool` | `false` | no |
+| <a name="input_smtp_tls"></a> [smtp\_tls](#input\_smtp\_tls) | Enable TLS for SMTP | `bool` | `true` | no |
+| <a name="input_smtp_user"></a> [smtp\_user](#input\_smtp\_user) | SMTP server user | `string` | `""` | no |
+| <a name="input_task_cpu"></a> [task\_cpu](#input\_task\_cpu) | CPU units for the Fargate task (256, 512, 1024, 2048, 4096) | `number` | `1024` | no |
+| <a name="input_task_memory"></a> [task\_memory](#input\_task\_memory) | Memory (MiB) for the Fargate task | `number` | `2048` | no |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block for VPC | `string` | `"10.0.0.0/16"` | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_alb_arn"></a> [alb\_arn](#output\_alb\_arn) | ARN of the Application Load Balancer |
+| <a name="output_alb_dns_name"></a> [alb\_dns\_name](#output\_alb\_dns\_name) | DNS name of the Application Load Balancer |
+| <a name="output_alb_security_group_id"></a> [alb\_security\_group\_id](#output\_alb\_security\_group\_id) | ID of the ALB security group |
+| <a name="output_alb_target_group_arn"></a> [alb\_target\_group\_arn](#output\_alb\_target\_group\_arn) | ARN of the backend target group |
+| <a name="output_alb_zone_id"></a> [alb\_zone\_id](#output\_alb\_zone\_id) | Zone ID of the Application Load Balancer |
+| <a name="output_app_secrets_arn"></a> [app\_secrets\_arn](#output\_app\_secrets\_arn) | ARN of the Secrets Manager secret containing application secrets |
+| <a name="output_aws_region"></a> [aws\_region](#output\_aws\_region) | AWS region |
+| <a name="output_database_subnet_ids"></a> [database\_subnet\_ids](#output\_database\_subnet\_ids) | IDs of the database subnets |
+| <a name="output_db_credentials_secret_arn"></a> [db\_credentials\_secret\_arn](#output\_db\_credentials\_secret\_arn) | ARN of the Secrets Manager secret containing database credentials |
+| <a name="output_deployment_instructions"></a> [deployment\_instructions](#output\_deployment\_instructions) | Instructions for deploying the application |
+| <a name="output_ecr_repository_arn"></a> [ecr\_repository\_arn](#output\_ecr\_repository\_arn) | ARN of the ECR repository |
+| <a name="output_ecr_repository_url"></a> [ecr\_repository\_url](#output\_ecr\_repository\_url) | URL of the ECR repository for backend images |
+| <a name="output_ecs_cluster_arn"></a> [ecs\_cluster\_arn](#output\_ecs\_cluster\_arn) | ARN of the ECS cluster |
+| <a name="output_ecs_cluster_id"></a> [ecs\_cluster\_id](#output\_ecs\_cluster\_id) | ID of the ECS cluster |
+| <a name="output_ecs_cluster_name"></a> [ecs\_cluster\_name](#output\_ecs\_cluster\_name) | Name of the ECS cluster |
+| <a name="output_ecs_security_group_id"></a> [ecs\_security\_group\_id](#output\_ecs\_security\_group\_id) | ID of the ECS security group |
+| <a name="output_ecs_service_id"></a> [ecs\_service\_id](#output\_ecs\_service\_id) | ARN of the ECS service |
+| <a name="output_ecs_service_name"></a> [ecs\_service\_name](#output\_ecs\_service\_name) | Name of the ECS service |
+| <a name="output_ecs_task_definition_arn"></a> [ecs\_task\_definition\_arn](#output\_ecs\_task\_definition\_arn) | ARN of the task definition |
+| <a name="output_ecs_task_execution_role_arn"></a> [ecs\_task\_execution\_role\_arn](#output\_ecs\_task\_execution\_role\_arn) | ARN of the task execution IAM role |
+| <a name="output_ecs_task_role_arn"></a> [ecs\_task\_role\_arn](#output\_ecs\_task\_role\_arn) | ARN of the task IAM role |
+| <a name="output_environment"></a> [environment](#output\_environment) | Current environment name |
+| <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | IDs of the private subnets |
+| <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | IDs of the public subnets |
+| <a name="output_rds_address"></a> [rds\_address](#output\_rds\_address) | RDS instance address (host only) |
+| <a name="output_rds_database_name"></a> [rds\_database\_name](#output\_rds\_database\_name) | Name of the database |
+| <a name="output_rds_endpoint"></a> [rds\_endpoint](#output\_rds\_endpoint) | RDS instance endpoint (host:port) |
+| <a name="output_rds_instance_id"></a> [rds\_instance\_id](#output\_rds\_instance\_id) | Identifier of the RDS instance |
+| <a name="output_rds_port"></a> [rds\_port](#output\_rds\_port) | RDS instance port |
+| <a name="output_rds_security_group_id"></a> [rds\_security\_group\_id](#output\_rds\_security\_group\_id) | ID of the RDS security group |
+| <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | CIDR block of the VPC |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | ID of the VPC |
+<!-- END_TF_DOCS -->

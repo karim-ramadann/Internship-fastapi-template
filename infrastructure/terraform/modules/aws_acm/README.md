@@ -1,4 +1,34 @@
 <!-- BEGIN_TF_DOCS -->
+# ACM Certificate Module
+
+Thin wrapper around [terraform-aws-modules/acm/aws](https://registry.terraform.io/modules/terraform-aws-modules/acm/aws/latest).
+
+This module provides organization-wide standards for SSL/TLS certificates:
+- Automatic DNS validation via Route53
+- Wildcard certificate support (*.domain.com)
+- Standard tagging with project and environment
+- Automatic validation waiting (no manual intervention)
+
+## Usage
+
+```hcl
+module "example" {
+  source = "../modules/this-module"
+  
+  context = {
+    project     = "my-project"
+    environment = "dev"
+    region      = "us-east-1"
+    common_tags = {
+      Environment = "dev"
+      ManagedBy   = "terraform"
+    }
+  }
+  
+  # Add required variables here
+}
+```
+
 ## Requirements
 
 No requirements.

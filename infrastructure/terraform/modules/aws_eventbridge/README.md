@@ -14,6 +14,26 @@ This module provides organization-wide standards for AWS EventBridge:
 - EventBridge Scheduler
 - Standard naming and tagging conventions
 
+## Usage
+
+```hcl
+module "example" {
+  source = "../modules/this-module"
+  
+  context = {
+    project     = "my-project"
+    environment = "dev"
+    region      = "us-east-1"
+    common_tags = {
+      Environment = "dev"
+      ManagedBy   = "terraform"
+    }
+  }
+  
+  # Add required variables here
+}
+```
+
 ## Requirements
 
 No requirements.
@@ -36,6 +56,7 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_context"></a> [context](#input\_context) | Context object containing project, environment, region, and common tags | <pre>object({<br/>    project     = string<br/>    environment = string<br/>    region      = string<br/>    common_tags = map(string)<br/>  })</pre> | n/a | yes |
 | <a name="input_api_destinations"></a> [api\_destinations](#input\_api\_destinations) | Map of EventBridge Destination definitions | `any` | `{}` | no |
 | <a name="input_append_connection_postfix"></a> [append\_connection\_postfix](#input\_append\_connection\_postfix) | Controls whether to append '-connection' to the name of the connection | `bool` | `true` | no |
 | <a name="input_append_destination_postfix"></a> [append\_destination\_postfix](#input\_append\_destination\_postfix) | Controls whether to append '-destination' to the name of the destination | `bool` | `true` | no |
@@ -63,7 +84,6 @@ No resources.
 | <a name="input_bus_name"></a> [bus\_name](#input\_bus\_name) | Name identifier for the EventBridge Bus (will be prefixed with project-environment). Use null for default bus | `string` | `null` | no |
 | <a name="input_cloudwatch_target_arns"></a> [cloudwatch\_target\_arns](#input\_cloudwatch\_target\_arns) | The ARNs of the CloudWatch Log Streams to use as EventBridge targets | `list(string)` | `[]` | no |
 | <a name="input_connections"></a> [connections](#input\_connections) | Map of EventBridge Connection definitions | `any` | `{}` | no |
-| <a name="input_context"></a> [context](#input\_context) | Context object containing project, environment, region, and common tags | <pre>object({<br/>    project     = string<br/>    environment = string<br/>    region      = string<br/>    common_tags = map(string)<br/>  })</pre> | n/a | yes |
 | <a name="input_create"></a> [create](#input\_create) | Controls whether resources should be created | `bool` | `true` | no |
 | <a name="input_create_api_destinations"></a> [create\_api\_destinations](#input\_create\_api\_destinations) | Controls whether EventBridge Destination resources should be created | `bool` | `false` | no |
 | <a name="input_create_archives"></a> [create\_archives](#input\_create\_archives) | Controls whether EventBridge Archive resources should be created | `bool` | `false` | no |

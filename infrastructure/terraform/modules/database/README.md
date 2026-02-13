@@ -35,6 +35,28 @@ module "database" {
 - [terraform-aws-modules/rds/aws](https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest)
 
 <!-- BEGIN_TF_DOCS -->
+
+
+## Usage
+
+```hcl
+module "example" {
+  source = "../modules/this-module"
+  
+  context = {
+    project     = "my-project"
+    environment = "dev"
+    region      = "us-east-1"
+    common_tags = {
+      Environment = "dev"
+      ManagedBy   = "terraform"
+    }
+  }
+  
+  # Add required variables here
+}
+```
+
 ## Requirements
 
 No requirements.

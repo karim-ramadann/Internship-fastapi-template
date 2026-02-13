@@ -11,6 +11,26 @@ This module provides organization-wide standards for CloudFront distributions:
 - SSL/TLS certificate integration
 - Custom error responses and caching behavior
 
+## Usage
+
+```hcl
+module "example" {
+  source = "../modules/this-module"
+  
+  context = {
+    project     = "my-project"
+    environment = "dev"
+    region      = "us-east-1"
+    common_tags = {
+      Environment = "dev"
+      ManagedBy   = "terraform"
+    }
+  }
+  
+  # Add required variables here
+}
+```
+
 ## Requirements
 
 No requirements.
@@ -33,19 +53,19 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_context"></a> [context](#input\_context) | Context object containing project, environment, region, and common tags | <pre>object({<br/>    project     = string<br/>    environment = string<br/>    region      = string<br/>    common_tags = map(string)<br/>  })</pre> | n/a | yes |
+| <a name="input_default_cache_behavior"></a> [default\_cache\_behavior](#input\_default\_cache\_behavior) | Default cache behavior for this distribution (map) | `any` | n/a | yes |
+| <a name="input_name"></a> [name](#input\_name) | Name identifier for the CloudFront distribution (will be prefixed with project-environment) | `string` | n/a | yes |
+| <a name="input_origin"></a> [origin](#input\_origin) | One or more origins for this distribution (list of maps) | `any` | n/a | yes |
 | <a name="input_aliases"></a> [aliases](#input\_aliases) | Extra CNAMEs (alternate domain names) for this distribution | `list(string)` | `[]` | no |
 | <a name="input_comment"></a> [comment](#input\_comment) | Comment for the CloudFront distribution | `string` | `null` | no |
-| <a name="input_context"></a> [context](#input\_context) | Context object containing project, environment, region, and common tags | <pre>object({<br/>    project     = string<br/>    environment = string<br/>    region      = string<br/>    common_tags = map(string)<br/>  })</pre> | n/a | yes |
 | <a name="input_custom_error_response"></a> [custom\_error\_response](#input\_custom\_error\_response) | One or more custom error response elements (list of maps) | `any` | `[]` | no |
-| <a name="input_default_cache_behavior"></a> [default\_cache\_behavior](#input\_default\_cache\_behavior) | Default cache behavior for this distribution (map) | `any` | n/a | yes |
 | <a name="input_default_root_object"></a> [default\_root\_object](#input\_default\_root\_object) | Object that you want CloudFront to return when a user requests the root URL | `string` | `"index.html"` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Whether the distribution is enabled to accept end user requests | `bool` | `true` | no |
 | <a name="input_geo_restriction"></a> [geo\_restriction](#input\_geo\_restriction) | Geographic restriction configuration (map with restriction\_type and locations) | `any` | <pre>{<br/>  "locations": [],<br/>  "restriction_type": "none"<br/>}</pre> | no |
 | <a name="input_is_ipv6_enabled"></a> [is\_ipv6\_enabled](#input\_is\_ipv6\_enabled) | Whether IPv6 is enabled for the distribution | `bool` | `true` | no |
 | <a name="input_logging_config"></a> [logging\_config](#input\_logging\_config) | Logging configuration for the distribution (map with bucket, include\_cookies, prefix) | `any` | `{}` | no |
-| <a name="input_name"></a> [name](#input\_name) | Name identifier for the CloudFront distribution (will be prefixed with project-environment) | `string` | n/a | yes |
 | <a name="input_ordered_cache_behavior"></a> [ordered\_cache\_behavior](#input\_ordered\_cache\_behavior) | Ordered list of cache behaviors resource for this distribution (list of maps) | `any` | `[]` | no |
-| <a name="input_origin"></a> [origin](#input\_origin) | One or more origins for this distribution (list of maps) | `any` | n/a | yes |
 | <a name="input_origin_group"></a> [origin\_group](#input\_origin\_group) | One or more origin groups for this distribution (map) | `any` | `{}` | no |
 | <a name="input_price_class"></a> [price\_class](#input\_price\_class) | Price class for the CloudFront distribution (PriceClass\_All, PriceClass\_200, PriceClass\_100) | `string` | `"PriceClass_100"` | no |
 | <a name="input_retain_on_delete"></a> [retain\_on\_delete](#input\_retain\_on\_delete) | Disables the distribution instead of deleting it when destroying the resource | `bool` | `false` | no |

@@ -10,6 +10,26 @@ This module provides organization-wide standards for AWS Batch:
 - IAM roles for service, instance, and spot fleet
 - Standard naming and tagging conventions
 
+## Usage
+
+```hcl
+module "example" {
+  source = "../modules/this-module"
+  
+  context = {
+    project     = "my-project"
+    environment = "dev"
+    region      = "us-east-1"
+    common_tags = {
+      Environment = "dev"
+      ManagedBy   = "terraform"
+    }
+  }
+  
+  # Add required variables here
+}
+```
+
 ## Requirements
 
 No requirements.
@@ -32,8 +52,8 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_compute_environments"></a> [compute\_environments](#input\_compute\_environments) | Map of compute environment definitions to create | `any` | `null` | no |
 | <a name="input_context"></a> [context](#input\_context) | Context object containing project, environment, region, and common tags | <pre>object({<br/>    project     = string<br/>    environment = string<br/>    region      = string<br/>    common_tags = map(string)<br/>  })</pre> | n/a | yes |
+| <a name="input_compute_environments"></a> [compute\_environments](#input\_compute\_environments) | Map of compute environment definitions to create | `any` | `null` | no |
 | <a name="input_create_instance_iam_role"></a> [create\_instance\_iam\_role](#input\_create\_instance\_iam\_role) | Determines whether an IAM role is created or to use an existing IAM role for compute instances | `bool` | `true` | no |
 | <a name="input_create_job_queues"></a> [create\_job\_queues](#input\_create\_job\_queues) | Determines whether to create job queues | `bool` | `true` | no |
 | <a name="input_create_service_iam_role"></a> [create\_service\_iam\_role](#input\_create\_service\_iam\_role) | Determines whether an IAM role is created or to use an existing IAM role for the Batch service | `bool` | `true` | no |

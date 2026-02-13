@@ -1,16 +1,51 @@
 formatter: "markdown table"
 
+header-from: main.tf
+footer-from: ""
+
+sections:
+  show:
+    - header
+    - requirements
+    - providers
+    - modules
+    - resources
+    - inputs
+    - outputs
+
 content: |-
+  {{ .Header }}
+  
+  ## Usage
+  
+  ```hcl
+  module "example" {
+    source = "../modules/this-module"
+    
+    context = {
+      project     = "my-project"
+      environment = "dev"
+      region      = "us-east-1"
+      common_tags = {
+        Environment = "dev"
+        ManagedBy   = "terraform"
+      }
+    }
+    
+    # Add required variables here
+  }
+  ```
+  
   {{ .Requirements }}
-
+  
   {{ .Providers }}
-
+  
   {{ .Modules }}
-
+  
   {{ .Resources }}
-
+  
   {{ .Inputs }}
-
+  
   {{ .Outputs }}
 
 output:

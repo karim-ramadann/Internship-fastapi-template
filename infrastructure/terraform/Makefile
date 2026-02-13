@@ -147,7 +147,8 @@ docs: docs-runtime docs-modules
 docs-runtime:
 	@echo "$(BLUE)Generating runtime documentation...$(NC)"
 	@if command -v terraform-docs >/dev/null 2>&1; then \
-		cd runtime && terraform-docs markdown table --output-file README.md --output-mode inject .; \
+		cd runtime && terraform-docs --config .terraform-docs.yml .; \
+		echo "$(GREEN)Runtime documentation generated!$(NC)"; \
 	else \
 		echo "$(RED)terraform-docs is not installed.$(NC)"; \
 		echo "Install it from: https://terraform-docs.io/"; \
@@ -160,15 +161,16 @@ docs-modules:
 		for dir in modules/aws_*/; do \
 			if [ -f "$$dir/main.tf" ]; then \
 				echo "  Generating docs for $$dir"; \
-				terraform-docs markdown table --output-file README.md --output-mode inject "$$dir"; \
+				terraform-docs --config modules/.terraform-docs.yml "$$dir"; \
 			fi \
 		done; \
 		for dir in modules/database modules/security; do \
 			if [ -d "$$dir" ] && [ -f "$$dir/main.tf" ]; then \
 				echo "  Generating docs for $$dir"; \
-				terraform-docs markdown table --output-file README.md --output-mode inject "$$dir"; \
+				terraform-docs --config modules/.terraform-docs.yml "$$dir"; \
 			fi \
 		done; \
+		echo "$(GREEN)Module documentation generated!$(NC)"; \
 	else \
 		echo "$(RED)terraform-docs is not installed.$(NC)"; \
 		echo "Install it from: https://terraform-docs.io/"; \
