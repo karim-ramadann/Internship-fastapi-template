@@ -7,11 +7,14 @@ This directory contains environment-specific Terraform variable files.
 ```
 environments/
 ├── dev/
-│   └── terraform.tfvars          # Development environment variables
+│   ├── terraform.tfvars          # Development environment variables
+│   └── backend.hcl               # Development S3 backend configuration
 ├── staging/
-│   └── terraform.tfvars          # Staging environment variables
+│   ├── terraform.tfvars          # Staging environment variables
+│   └── backend.hcl               # Staging S3 backend configuration
 └── production/
-    └── terraform.tfvars          # Production environment variables
+    ├── terraform.tfvars          # Production environment variables
+    └── backend.hcl               # Production S3 backend configuration
 ```
 
 ## Usage
@@ -47,17 +50,17 @@ Or manually from the runtime directory:
 
 ```bash
 # Development
-terraform init -backend-config="key=runtime/environments/dev/terraform.tfstate"
+terraform init -backend-config=environments/dev/backend.hcl
 terraform plan -var-file=environments/dev/terraform.tfvars
 terraform apply -var-file=environments/dev/terraform.tfvars
 
 # Staging
-terraform init -backend-config="key=runtime/environments/staging/terraform.tfstate"
+terraform init -backend-config=environments/staging/backend.hcl
 terraform plan -var-file=environments/staging/terraform.tfvars
 terraform apply -var-file=environments/staging/terraform.tfvars
 
 # Production
-terraform init -backend-config="key=runtime/environments/production/terraform.tfstate"
+terraform init -backend-config=environments/production/backend.hcl
 terraform plan -var-file=environments/production/terraform.tfvars
 terraform apply -var-file=environments/production/terraform.tfvars
 ```
@@ -124,10 +127,19 @@ To add a new environment (e.g., `qa`):
 
 2. Update the values in `environments/qa/terraform.tfvars`
 
-3. Add Make targets to the main Makefile:
+3. Create a backend configuration file:
+   ```bash
+   cat > environments/qa/backend.hcl <<EOF
+   bucket = "digico-fullstack-tfstate-bucket-development"
+   key    = "runtime/environments/qa/terraform.tfstate"
+   region = "eu-west-1"
+   EOF
+   ```
+
+4. Add Make targets to the main Makefile:
    ```makefile
    init-qa:
-       cd runtime && terraform init -backend-config="key=runtime/environments/qa/terraform.tfstate"
+       cd runtime && terraform init -backend-config=environments/qa/backend.hcl
    
    plan-qa:
        cd runtime && terraform plan -var-file=environments/qa/terraform.tfvars
@@ -136,8 +148,37 @@ To add a new environment (e.g., `qa`):
        cd runtime && terraform apply -var-file=environments/qa/terraform.tfvars
    ```
 
-4. Deploy:
+5. Deploy:
    ```bash
    make init-qa
    make apply-qa
    ```
+
+## Backend Configuration
+
+Each environment has a `backend.hcl` file that specifies:
+- **bucket**: S3 bucket name for storing Terraform state
+- **key**: Unique path within the bucket for this environment's state
+- **region**: AWS region where the S3 bucket resides
+
+**Example (`environments/dev/backend.hcl`):**
+```hcl
+bucket = "digico-fullstack-tfstate-bucket-development"
+key    = "runtime/environments/dev/terraform.tfstate"
+region = "eu-west-1"
+```
+
+### Using Different Buckets Per Environment
+
+You can configure each environment to use a different S3 bucket:
+
+```hcl
+# Development - shared bucket
+bucket = "digico-fullstack-tfstate-bucket-development"
+
+# Staging - shared bucket
+bucket = "digico-fullstack-tfstate-bucket-development"
+
+# Production - dedicated bucket
+bucket = "digico-fullstack-tfstate-bucket-production"
+```

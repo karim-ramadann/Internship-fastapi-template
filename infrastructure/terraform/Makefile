@@ -60,7 +60,7 @@ help:
 
 init-dev:
 	@echo "$(BLUE)Initializing Terraform for development environment...$(NC)"
-	cd runtime && terraform init -backend-config="key=runtime/environments/dev/terraform.tfstate"
+	cd runtime && terraform init -backend-config=environments/dev/backend.hcl
 
 plan-dev:
 	@echo "$(BLUE)Planning Terraform changes for development environment...$(NC)"
@@ -81,7 +81,7 @@ destroy-dev:
 
 init-staging:
 	@echo "$(BLUE)Initializing Terraform for staging environment...$(NC)"
-	cd runtime && terraform init -backend-config="key=runtime/environments/staging/terraform.tfstate"
+	cd runtime && terraform init -backend-config=environments/staging/backend.hcl
 
 plan-staging:
 	@echo "$(BLUE)Planning Terraform changes for staging environment...$(NC)"
@@ -102,7 +102,7 @@ destroy-staging:
 
 init-production:
 	@echo "$(BLUE)Initializing Terraform for production environment...$(NC)"
-	cd runtime && terraform init -backend-config="key=runtime/environments/production/terraform.tfstate"
+	cd runtime && terraform init -backend-config=environments/production/backend.hcl
 
 plan-production:
 	@echo "$(BLUE)Planning Terraform changes for production environment...$(NC)"
