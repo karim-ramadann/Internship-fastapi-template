@@ -10,23 +10,23 @@ This module provides organization-wide standards for AWS Step Functions:
 - Support for STANDARD and EXPRESS state machine types
 - Encryption configuration for data at rest
 
+## What This Module Adds
+
+This wrapper module provides organization-wide standards:
+
+- **Naming convention**: `{project}-{environment}-{resource_name}`
+- **Standard tagging**: Merges project, environment, and component tags
+- **Environment-based defaults**: Configures resources based on environment (production vs staging)
+
 ## Usage
 
 ```hcl
 module "example" {
-  source = "../modules/this-module"
+  source = "./modules/MODULE_NAME"
   
-  context = {
-    project     = "my-project"
-    environment = "dev"
-    region      = "us-east-1"
-    common_tags = {
-      Environment = "dev"
-      ManagedBy   = "terraform"
-    }
-  }
+  context = local.context
   
-  # Add required variables here
+  # Module-specific variables
 }
 ```
 
@@ -42,7 +42,7 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_step_function"></a> [step\_function](#module\_step\_function) | terraform-aws-modules/step-functions/aws | ~> 4.2 |
+| <a name="module_step_function"></a> [step\_function](#module\_step\_function) | terraform-aws-modules/step-functions/aws | ~> 5.0 |
 
 ## Resources
 

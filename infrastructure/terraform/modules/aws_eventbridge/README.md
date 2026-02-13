@@ -14,23 +14,23 @@ This module provides organization-wide standards for AWS EventBridge:
 - EventBridge Scheduler
 - Standard naming and tagging conventions
 
+## What This Module Adds
+
+This wrapper module provides organization-wide standards:
+
+- **Naming convention**: `{project}-{environment}-{resource_name}`
+- **Standard tagging**: Merges project, environment, and component tags
+- **Environment-based defaults**: Configures resources based on environment (production vs staging)
+
 ## Usage
 
 ```hcl
 module "example" {
-  source = "../modules/this-module"
+  source = "./modules/MODULE_NAME"
   
-  context = {
-    project     = "my-project"
-    environment = "dev"
-    region      = "us-east-1"
-    common_tags = {
-      Environment = "dev"
-      ManagedBy   = "terraform"
-    }
-  }
+  context = local.context
   
-  # Add required variables here
+  # Module-specific variables
 }
 ```
 

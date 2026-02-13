@@ -7,13 +7,16 @@
 
 # Environment Configuration
 environment = "staging"
-project     = "full-stack-fastapi-project"
+project     = "fastapi"
 aws_region  = "eu-west-1"
 
 # Networking Configuration
 vpc_cidr               = "10.0.0.0/16"
-single_nat_gateway     = true  # Cost-effective: single NAT Gateway
+single_nat_gateway     = true # Cost-effective: single NAT Gateway
 one_nat_gateway_per_az = false
+public_subnet_cidrs    = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs   = ["10.0.10.0/24", "10.0.11.0/24"]
+database_subnet_cidrs  = ["10.0.20.0/24", "10.0.21.0/24"]
 
 # Database Configuration
 db_name                   = "app"
@@ -40,9 +43,8 @@ backend_cors_origins = "https://staging.example.com"
 first_superuser      = "admin@example.com"
 emails_from_email    = "noreply@example.com"
 
-# Secrets (should be set via environment variables or CI/CD)
-# first_superuser_password = ""  # Set via TF_VAR_first_superuser_password
-# secret_key              = ""   # Set via TF_VAR_secret_key
+# Secrets are managed via SSM Parameter Store (SecureString).
+# See ssm.tf for naming convention.
 
 # Email Configuration
 smtp_host = "smtp.example.com"
@@ -50,10 +52,11 @@ smtp_user = "noreply@example.com"
 smtp_port = 587
 smtp_tls  = true
 smtp_ssl  = false
-# smtp_password = ""  # Set via TF_VAR_smtp_password
 
 # Monitoring Configuration
-sentry_dsn = "" # Add Sentry DSN for error tracking
+sentry_dsn         = "" # Add Sentry DSN for error tracking
+log_retention_days = 14
+enable_alarms      = false
 
 # Docker Image Configuration
 backend_image_tag   = "staging-latest"

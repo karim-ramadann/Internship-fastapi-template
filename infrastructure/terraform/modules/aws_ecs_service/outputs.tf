@@ -63,11 +63,6 @@ output "tasks_iam_role_name" {
   value       = module.ecs_service.tasks_iam_role_name
 }
 
-output "autoscaling_target_arn" {
-  description = "ARN of the autoscaling target"
-  value       = module.ecs_service.autoscaling_target_arn
-}
-
 output "autoscaling_policies" {
   description = "Map of autoscaling policies and their attributes"
   value       = module.ecs_service.autoscaling_policies

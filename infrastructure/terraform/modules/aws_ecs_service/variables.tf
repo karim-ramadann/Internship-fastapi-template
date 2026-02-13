@@ -411,12 +411,6 @@ variable "task_exec_iam_role_permissions_boundary" {
   default     = null
 }
 
-variable "task_exec_iam_role_statements" {
-  description = "Map of IAM policy statements for the task execution IAM role"
-  type        = any
-  default     = null
-}
-
 variable "task_exec_iam_role_tags" {
   description = "Additional tags to add to the task execution IAM role"
   type        = map(string)

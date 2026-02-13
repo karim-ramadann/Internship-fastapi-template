@@ -172,7 +172,7 @@ output "aws_region" {
 # Useful Instructions
 output "deployment_instructions" {
   description = "Instructions for deploying the application"
-  value = <<-EOT
+  value       = <<-EOT
     
     ====================================================================================================
     DEPLOYMENT INSTRUCTIONS

@@ -1,3 +1,4 @@
-bucket = "digico-fullstack-tfstate-bucket-production"
-key    = "runtime/environments/production/terraform.tfstate"
-region = "eu-west-1"
+# Terraform S3 Backend Configuration for Production
+# Usage: terraform init -backend-config=environments/production/backend.hcl
+
+key = "production/terraform.tfstate"

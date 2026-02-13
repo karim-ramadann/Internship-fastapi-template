@@ -27,7 +27,7 @@ locals {
 
 module "ecr" {
   source  = "terraform-aws-modules/ecr/aws"
-  version = "~> 2.3"
+  version = "~> 3.0"
 
   repository_name = local.repository_name
   repository_type = var.repository_type
@@ -46,13 +46,14 @@ module "ecr" {
   repository_lifecycle_policy = var.lifecycle_policy
 
   # Repository policy
+  attach_repository_policy = var.create_repository_policy || var.repository_policy != null
   create_repository_policy = var.create_repository_policy
   repository_policy        = var.repository_policy
 
   # Access control via IAM
-  repository_read_access_arns        = var.read_access_arns
-  repository_read_write_access_arns  = var.read_write_access_arns
-  repository_lambda_read_access_arns = var.lambda_read_access_arns
+  repository_read_access_arns        = length(var.read_access_arns) > 0 ? var.read_access_arns : []
+  repository_read_write_access_arns  = length(var.read_write_access_arns) > 0 ? var.read_write_access_arns : []
+  repository_lambda_read_access_arns = length(var.lambda_read_access_arns) > 0 ? var.lambda_read_access_arns : []
 
   # Public repository catalog data (only for public repositories)
   public_repository_catalog_data = var.public_repository_catalog_data

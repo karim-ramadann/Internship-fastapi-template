@@ -2,10 +2,10 @@
 # AWS Secrets Manager - Application Secrets
 # ============================================================================
 # Store application secrets in AWS Secrets Manager for secure access by ECS tasks.
+# Values are sourced from SSM Parameter Store SecureString parameters.
 # Database credentials are managed by the database module.
 # ============================================================================
 
-# Application secrets (SECRET_KEY, FIRST_SUPERUSER_PASSWORD, SMTP_PASSWORD)
 resource "aws_secretsmanager_secret" "app_secrets" {
   # Naming standard: env/project/service/resource (hierarchical)
   name        = "${var.environment}/${var.project}/app/secrets"
@@ -23,8 +23,8 @@ resource "aws_secretsmanager_secret" "app_secrets" {
 resource "aws_secretsmanager_secret_version" "app_secrets" {
   secret_id = aws_secretsmanager_secret.app_secrets.id
   secret_string = jsonencode({
-    secret_key                = var.secret_key
-    first_superuser_password  = var.first_superuser_password
-    smtp_password             = var.smtp_password
+    secret_key               = aws_ssm_parameter.secret_key.value
+    first_superuser_password = aws_ssm_parameter.first_superuser_password.value
+    smtp_password            = aws_ssm_parameter.smtp_password.value
   })
 }

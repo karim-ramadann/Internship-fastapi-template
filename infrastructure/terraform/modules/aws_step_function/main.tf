@@ -13,7 +13,7 @@
 
 locals {
   state_machine_name = "${var.context.project}-${var.context.environment}-${var.name}"
-  
+
   tags = merge(
     var.context.common_tags,
     {
@@ -26,7 +26,7 @@ locals {
 
 module "step_function" {
   source  = "terraform-aws-modules/step-functions/aws"
-  version = "~> 4.2"
+  version = "~> 5.0"
 
   name       = local.state_machine_name
   definition = var.definition
@@ -64,13 +64,13 @@ module "step_function" {
   policy_path              = var.policy_path
 
   # CloudWatch Logs
-  attach_cloudwatch_logs_policy      = var.attach_cloudwatch_logs_policy
-  logging_configuration              = var.logging_configuration
-  use_existing_cloudwatch_log_group  = var.use_existing_cloudwatch_log_group
-  cloudwatch_log_group_name          = var.cloudwatch_log_group_name
+  attach_cloudwatch_logs_policy          = var.attach_cloudwatch_logs_policy
+  logging_configuration                  = var.logging_configuration
+  use_existing_cloudwatch_log_group      = var.use_existing_cloudwatch_log_group
+  cloudwatch_log_group_name              = var.cloudwatch_log_group_name
   cloudwatch_log_group_retention_in_days = var.cloudwatch_log_group_retention_in_days
-  cloudwatch_log_group_kms_key_id    = var.cloudwatch_log_group_kms_key_id
-  cloudwatch_log_group_tags          = merge(local.tags, var.cloudwatch_log_group_tags)
+  cloudwatch_log_group_kms_key_id        = var.cloudwatch_log_group_kms_key_id
+  cloudwatch_log_group_tags              = merge(local.tags, var.cloudwatch_log_group_tags)
 
   # Encryption configuration
   encryption_configuration = var.encryption_configuration

@@ -106,7 +106,7 @@ output "redshift_subnet_arns" {
 
 output "redshift_subnet_group_name" {
   description = "Name of redshift subnet group"
-  value       = module.vpc.redshift_subnet_group_id
+  value       = module.vpc.redshift_subnet_group
 }
 
 output "intra_subnet_ids" {
@@ -198,67 +198,6 @@ output "customer_gateway_arns" {
 output "dhcp_options_id" {
   description = "ID of the DHCP options"
   value       = module.vpc.dhcp_options_id
-}
-
-# VPC Endpoints
-output "vpc_endpoint_s3_id" {
-  description = "ID of VPC endpoint for S3"
-  value       = module.vpc.vpc_endpoint_s3_id
-}
-
-output "vpc_endpoint_dynamodb_id" {
-  description = "ID of VPC endpoint for DynamoDB"
-  value       = module.vpc.vpc_endpoint_dynamodb_id
-}
-
-output "vpc_endpoint_ecr_api_id" {
-  description = "ID of VPC endpoint for ECR API"
-  value       = try(module.vpc.vpc_endpoint_ecr_api_id, null)
-}
-
-output "vpc_endpoint_ecr_dkr_id" {
-  description = "ID of VPC endpoint for ECR DKR"
-  value       = try(module.vpc.vpc_endpoint_ecr_dkr_id, null)
-}
-
-output "vpc_endpoint_ecs_id" {
-  description = "ID of VPC endpoint for ECS"
-  value       = try(module.vpc.vpc_endpoint_ecs_id, null)
-}
-
-output "vpc_endpoint_ecs_agent_id" {
-  description = "ID of VPC endpoint for ECS Agent"
-  value       = try(module.vpc.vpc_endpoint_ecs_agent_id, null)
-}
-
-output "vpc_endpoint_ecs_telemetry_id" {
-  description = "ID of VPC endpoint for ECS Telemetry"
-  value       = try(module.vpc.vpc_endpoint_ecs_telemetry_id, null)
-}
-
-output "vpc_endpoint_logs_id" {
-  description = "ID of VPC endpoint for CloudWatch Logs"
-  value       = try(module.vpc.vpc_endpoint_logs_id, null)
-}
-
-output "vpc_endpoint_secretsmanager_id" {
-  description = "ID of VPC endpoint for Secrets Manager"
-  value       = try(module.vpc.vpc_endpoint_secretsmanager_id, null)
-}
-
-output "vpc_endpoint_ssm_id" {
-  description = "ID of VPC endpoint for SSM"
-  value       = try(module.vpc.vpc_endpoint_ssm_id, null)
-}
-
-output "vpc_endpoint_ssmmessages_id" {
-  description = "ID of VPC endpoint for SSM Messages"
-  value       = try(module.vpc.vpc_endpoint_ssmmessages_id, null)
-}
-
-output "vpc_endpoint_ec2messages_id" {
-  description = "ID of VPC endpoint for EC2 Messages"
-  value       = try(module.vpc.vpc_endpoint_ec2messages_id, null)
 }
 
 # VPC Flow Logs

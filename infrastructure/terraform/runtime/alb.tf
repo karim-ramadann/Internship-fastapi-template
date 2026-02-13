@@ -2,11 +2,48 @@
 # Application Load Balancer
 # ============================================================================
 
+locals {
+  enable_https = var.acm_certificate_arn != ""
+
+  all_listeners = {
+    https = {
+      enabled         = local.enable_https
+      port            = 443
+      protocol        = "HTTPS"
+      ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+      certificate_arn = var.acm_certificate_arn
+      forward         = { target_group_key = "backend" }
+      redirect        = null
+    }
+    http_redirect = {
+      enabled         = local.enable_https
+      port            = 80
+      protocol        = "HTTP"
+      ssl_policy      = null
+      certificate_arn = null
+      forward         = null
+      redirect = {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+    http = {
+      enabled         = !local.enable_https
+      port            = 80
+      protocol        = "HTTP"
+      ssl_policy      = null
+      certificate_arn = null
+      forward         = { target_group_key = "backend" }
+      redirect        = null
+    }
+  }
+}
+
 module "alb" {
   source  = "terraform-aws-modules/alb/aws"
-  version = "~> 9.0"
+  version = "~> 10.0"
 
-  # Naming standard: project-resource-name-env (flat)
   name               = "${var.project}-alb-${var.environment}"
   load_balancer_type = "application"
   internal           = false
@@ -19,10 +56,8 @@ module "alb" {
   enable_http2                     = true
   enable_cross_zone_load_balancing = true
 
-  # Target Groups
   target_groups = {
     backend = {
-      # Naming standard: project-resource-name-env (flat)
       name             = "${var.project}-backend-tg-${var.environment}"
       backend_protocol = "HTTP"
       backend_port     = 80
@@ -41,28 +76,25 @@ module "alb" {
 
       deregistration_delay = 30
 
-      # Stickiness configuration
       stickiness = {
         enabled         = false
         type            = "lb_cookie"
         cookie_duration = 86400
       }
 
-      # ECS targets are registered by the ECS service, not the ALB module
       create_attachment = false
     }
   }
 
-  # Listeners
   listeners = {
-    http = {
-      port     = 80
-      protocol = "HTTP"
-
-      forward = {
-        target_group_key = "backend"
-      }
-    }
+    for k, v in local.all_listeners : k => {
+      port            = v.port
+      protocol        = v.protocol
+      ssl_policy      = v.ssl_policy
+      certificate_arn = v.certificate_arn
+      forward         = v.forward
+      redirect        = v.redirect
+    } if v.enabled
   }
 
   tags = merge(

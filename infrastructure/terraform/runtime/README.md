@@ -349,23 +349,23 @@ See [NAMING.md](NAMING.md) for resource naming conventions.
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.11.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.6 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.32.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_alb"></a> [alb](#module\_alb) | terraform-aws-modules/alb/aws | ~> 9.0 |
+| <a name="module_alb"></a> [alb](#module\_alb) | terraform-aws-modules/alb/aws | ~> 10.0 |
 | <a name="module_alb_security_group"></a> [alb\_security\_group](#module\_alb\_security\_group) | terraform-aws-modules/security-group/aws | ~> 5.0 |
-| <a name="module_database"></a> [database](#module\_database) | ../modules/database | n/a |
+| <a name="module_database"></a> [database](#module\_database) | ../modules/aws_rds_postgresql | n/a |
 | <a name="module_ecr_backend"></a> [ecr\_backend](#module\_ecr\_backend) | ../modules/aws_ecr_repository | n/a |
 | <a name="module_ecs_cluster"></a> [ecs\_cluster](#module\_ecs\_cluster) | ../modules/aws_ecs_cluster | n/a |
 | <a name="module_ecs_security_group"></a> [ecs\_security\_group](#module\_ecs\_security\_group) | terraform-aws-modules/security-group/aws | ~> 5.0 |
@@ -381,6 +381,9 @@ See [NAMING.md](NAMING.md) for resource naming conventions.
 | [aws_secretsmanager_secret_version.app_secrets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret_version) | resource |
 | [aws_security_group_rule.alb_to_ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_security_group_rule.ecs_to_rds](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
+| [aws_ssm_parameter.first_superuser_password](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.secret_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.smtp_password](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 
 ## Inputs
 
@@ -392,24 +395,30 @@ See [NAMING.md](NAMING.md) for resource naming conventions.
 | <a name="input_emails_from_email"></a> [emails\_from\_email](#input\_emails\_from\_email) | Email address to send from | `string` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, staging, production) | `string` | n/a | yes |
 | <a name="input_first_superuser"></a> [first\_superuser](#input\_first\_superuser) | Email for first superuser | `string` | n/a | yes |
-| <a name="input_first_superuser_password"></a> [first\_superuser\_password](#input\_first\_superuser\_password) | Password for first superuser | `string` | n/a | yes |
 | <a name="input_frontend_host"></a> [frontend\_host](#input\_frontend\_host) | Frontend URL for email links | `string` | n/a | yes |
-| <a name="input_secret_key"></a> [secret\_key](#input\_secret\_key) | Backend secret key for JWT tokens | `string` | n/a | yes |
+| <a name="input_acm_certificate_arn"></a> [acm\_certificate\_arn](#input\_acm\_certificate\_arn) | ARN of the ACM certificate for HTTPS. When provided, ALB uses HTTPS with HTTP→HTTPS redirect. | `string` | `""` | no |
 | <a name="input_autoscaling_max_capacity"></a> [autoscaling\_max\_capacity](#input\_autoscaling\_max\_capacity) | Maximum number of tasks for auto-scaling | `number` | `10` | no |
 | <a name="input_autoscaling_min_capacity"></a> [autoscaling\_min\_capacity](#input\_autoscaling\_min\_capacity) | Minimum number of tasks for auto-scaling | `number` | `1` | no |
 | <a name="input_backend_image_tag"></a> [backend\_image\_tag](#input\_backend\_image\_tag) | Docker image tag for backend (e.g., latest, v1.0.0) | `string` | `"latest"` | no |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Common tags to apply to all resources | `map(string)` | `{}` | no |
+| <a name="input_database_subnet_cidrs"></a> [database\_subnet\_cidrs](#input\_database\_subnet\_cidrs) | CIDR blocks for database subnets | `list(string)` | <pre>[<br/>  "10.0.20.0/24",<br/>  "10.0.21.0/24"<br/>]</pre> | no |
 | <a name="input_db_name"></a> [db\_name](#input\_db\_name) | Database name | `string` | `"app"` | no |
 | <a name="input_db_username"></a> [db\_username](#input\_db\_username) | Database master username | `string` | `"postgres"` | no |
 | <a name="input_ecr_repository_name"></a> [ecr\_repository\_name](#input\_ecr\_repository\_name) | Name for the ECR repository | `string` | `"backend"` | no |
 | <a name="input_ecs_desired_count"></a> [ecs\_desired\_count](#input\_ecs\_desired\_count) | Desired number of ECS tasks | `number` | `1` | no |
+| <a name="input_enable_alarms"></a> [enable\_alarms](#input\_enable\_alarms) | Enable CloudWatch alarms | `bool` | `false` | no |
 | <a name="input_enable_autoscaling"></a> [enable\_autoscaling](#input\_enable\_autoscaling) | Enable auto-scaling for ECS service | `bool` | `false` | no |
+| <a name="input_first_superuser_password"></a> [first\_superuser\_password](#input\_first\_superuser\_password) | Password for the first superuser account | `string` | `"changeme"` | no |
+| <a name="input_log_retention_days"></a> [log\_retention\_days](#input\_log\_retention\_days) | CloudWatch log retention in days | `number` | `7` | no |
 | <a name="input_one_nat_gateway_per_az"></a> [one\_nat\_gateway\_per\_az](#input\_one\_nat\_gateway\_per\_az) | Create one NAT Gateway per availability zone (recommended for production) | `bool` | `false` | no |
-| <a name="input_project"></a> [project](#input\_project) | Project name | `string` | `"full-stack-fastapi-project"` | no |
+| <a name="input_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#input\_private\_subnet\_cidrs) | CIDR blocks for private subnets | `list(string)` | <pre>[<br/>  "10.0.10.0/24",<br/>  "10.0.11.0/24"<br/>]</pre> | no |
+| <a name="input_project"></a> [project](#input\_project) | Project name | `string` | `"fastapi"` | no |
+| <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | CIDR blocks for public subnets | `list(string)` | <pre>[<br/>  "10.0.1.0/24",<br/>  "10.0.2.0/24"<br/>]</pre> | no |
 | <a name="input_rds_allocated_storage"></a> [rds\_allocated\_storage](#input\_rds\_allocated\_storage) | RDS allocated storage in GB | `number` | `20` | no |
 | <a name="input_rds_backup_retention_days"></a> [rds\_backup\_retention\_days](#input\_rds\_backup\_retention\_days) | RDS backup retention period in days | `number` | `7` | no |
 | <a name="input_rds_instance_class"></a> [rds\_instance\_class](#input\_rds\_instance\_class) | RDS instance class | `string` | `"db.t3.micro"` | no |
 | <a name="input_rds_multi_az"></a> [rds\_multi\_az](#input\_rds\_multi\_az) | Enable Multi-AZ deployment for RDS | `bool` | `false` | no |
+| <a name="input_secret_key"></a> [secret\_key](#input\_secret\_key) | Application secret key for JWT tokens | `string` | `"staging-secret-key-changeme"` | no |
 | <a name="input_sentry_dsn"></a> [sentry\_dsn](#input\_sentry\_dsn) | Sentry DSN for error tracking | `string` | `""` | no |
 | <a name="input_single_nat_gateway"></a> [single\_nat\_gateway](#input\_single\_nat\_gateway) | Use a single NAT Gateway for all private subnets (cost-effective for dev/staging) | `bool` | `true` | no |
 | <a name="input_smtp_host"></a> [smtp\_host](#input\_smtp\_host) | SMTP server host | `string` | `""` | no |

@@ -165,14 +165,8 @@ docs-runtime:
 docs-modules:
 	@echo "$(BLUE)Generating module documentation...$(NC)"
 	@if command -v terraform-docs >/dev/null 2>&1; then \
-		for dir in modules/aws_*/; do \
+		for dir in modules/*/; do \
 			if [ -f "$$dir/main.tf" ]; then \
-				echo "  Generating docs for $$dir"; \
-				terraform-docs --config modules/.terraform-docs.yml "$$dir"; \
-			fi \
-		done; \
-		for dir in modules/database modules/security; do \
-			if [ -d "$$dir" ] && [ -f "$$dir/main.tf" ]; then \
 				echo "  Generating docs for $$dir"; \
 				terraform-docs --config modules/.terraform-docs.yml "$$dir"; \
 			fi \

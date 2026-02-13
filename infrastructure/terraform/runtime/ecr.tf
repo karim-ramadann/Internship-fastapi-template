@@ -9,11 +9,11 @@ module "ecr_backend" {
   name    = var.ecr_repository_name
 
   # Repository configuration
-  repository_type         = "private"
-  image_tag_mutability    = "MUTABLE"
-  image_scan_on_push      = true
-  force_delete            = var.environment != "production" # Allow force delete for non-prod
-  encryption_type         = "AES256"
+  repository_type      = "private"
+  image_tag_mutability = "MUTABLE"
+  image_scan_on_push   = true
+  force_delete         = var.environment != "production" # Allow force delete for non-prod
+  encryption_type      = "AES256"
 
   # Lifecycle policy to keep only the last 10 images
   create_lifecycle_policy = true
@@ -23,9 +23,9 @@ module "ecr_backend" {
         rulePriority = 1
         description  = "Keep last 10 images"
         selection = {
-          tagStatus     = "any"
-          countType     = "imageCountMoreThan"
-          countNumber   = 10
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 10
         }
         action = {
           type = "expire"
