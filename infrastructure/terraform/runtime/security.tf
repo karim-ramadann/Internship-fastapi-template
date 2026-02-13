@@ -12,7 +12,22 @@ module "alb_security_group" {
   description = "Security group for Application Load Balancer"
   vpc_id      = module.vpc.vpc_id
 
-  ingress_with_cidr_blocks = [
+  ingress_with_cidr_blocks = local.enable_https ? [
+    {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+      description = "HTTPS from anywhere"
+    },
+    {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+      description = "HTTP from anywhere (redirects to HTTPS)"
+    }
+    ] : [
     {
       from_port   = 80
       to_port     = 80
@@ -22,13 +37,14 @@ module "alb_security_group" {
     }
   ]
 
+  # ALB only needs to reach ECS targets within the VPC
   egress_with_cidr_blocks = [
     {
       from_port   = 0
       to_port     = 0
       protocol    = "-1"
-      cidr_blocks = "0.0.0.0/0"
-      description = "Allow all outbound"
+      cidr_blocks = var.vpc_cidr
+      description = "Allow outbound to VPC only"
     }
   ]
 
@@ -76,11 +92,18 @@ module "ecs_security_group" {
 
   egress_with_cidr_blocks = [
     {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+      description = "HTTPS outbound for ECR, AWS APIs, external services"
+    },
+    {
       from_port   = 0
       to_port     = 0
       protocol    = "-1"
-      cidr_blocks = "0.0.0.0/0"
-      description = "Allow all outbound"
+      cidr_blocks = var.vpc_cidr
+      description = "All traffic within VPC (RDS, service discovery)"
     }
   ]
 

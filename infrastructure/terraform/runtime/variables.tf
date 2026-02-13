@@ -20,7 +20,7 @@ variable "environment" {
 variable "project" {
   description = "Project name"
   type        = string
-  default     = "full-stack-fastapi-project"
+  default     = "fastapi"
 }
 
 # ============================================================================
@@ -43,6 +43,24 @@ variable "one_nat_gateway_per_az" {
   description = "Create one NAT Gateway per availability zone (recommended for production)"
   type        = bool
   default     = false
+}
+
+variable "public_subnet_cidrs" {
+  description = "CIDR blocks for public subnets"
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
+}
+
+variable "private_subnet_cidrs" {
+  description = "CIDR blocks for private subnets"
+  type        = list(string)
+  default     = ["10.0.10.0/24", "10.0.11.0/24"]
+}
+
+variable "database_subnet_cidrs" {
+  description = "CIDR blocks for database subnets"
+  type        = list(string)
+  default     = ["10.0.20.0/24", "10.0.21.0/24"]
 }
 
 # ============================================================================
@@ -149,18 +167,6 @@ variable "first_superuser" {
   type        = string
 }
 
-variable "first_superuser_password" {
-  description = "Password for first superuser"
-  type        = string
-  sensitive   = true
-}
-
-variable "secret_key" {
-  description = "Backend secret key for JWT tokens"
-  type        = string
-  sensitive   = true
-}
-
 # ============================================================================
 # Email Configuration Variables
 # ============================================================================
@@ -175,13 +181,6 @@ variable "smtp_user" {
   description = "SMTP server user"
   type        = string
   default     = ""
-}
-
-variable "smtp_password" {
-  description = "SMTP server password"
-  type        = string
-  default     = ""
-  sensitive   = true
 }
 
 variable "emails_from_email" {
@@ -213,6 +212,28 @@ variable "smtp_port" {
 
 variable "sentry_dsn" {
   description = "Sentry DSN for error tracking"
+  type        = string
+  default     = ""
+}
+
+variable "log_retention_days" {
+  description = "CloudWatch log retention in days"
+  type        = number
+  default     = 7
+}
+
+variable "enable_alarms" {
+  description = "Enable CloudWatch alarms"
+  type        = bool
+  default     = false
+}
+
+# ============================================================================
+# TLS / Certificate Variables
+# ============================================================================
+
+variable "acm_certificate_arn" {
+  description = "ARN of the ACM certificate for HTTPS. When provided, ALB uses HTTPS with HTTP→HTTPS redirect."
   type        = string
   default     = ""
 }

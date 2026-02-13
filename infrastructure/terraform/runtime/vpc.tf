@@ -12,9 +12,9 @@ module "vpc" {
   availability_zones = local.availability_zones
 
   # Subnet Configuration
-  public_subnet_cidrs   = local.public_subnet_cidrs
-  private_subnet_cidrs  = local.private_subnet_cidrs
-  database_subnet_cidrs = local.database_subnet_cidrs
+  public_subnet_cidrs   = var.public_subnet_cidrs
+  private_subnet_cidrs  = var.private_subnet_cidrs
+  database_subnet_cidrs = var.database_subnet_cidrs
 
   # Database subnet group
   create_database_subnet_group       = true
@@ -32,16 +32,6 @@ module "vpc" {
   # DNS Settings
   enable_dns_hostnames = true
   enable_dns_support   = true
-
-  # VPC Endpoints for ECS (optional but recommended)
-  enable_ecr_api_endpoint = true
-  enable_ecr_dkr_endpoint = true
-  enable_logs_endpoint    = true
-  enable_s3_endpoint      = true
-
-  ecr_api_endpoint_private_dns_enabled = true
-  ecr_dkr_endpoint_private_dns_enabled = true
-  logs_endpoint_private_dns_enabled    = true
 
   tags = {
     Component = "networking"

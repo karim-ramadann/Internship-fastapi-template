@@ -14,23 +14,23 @@ This module provides organization-wide standards for ECS services:
 - CloudWatch logging
 - Standard naming and tagging conventions
 
+## What This Module Adds
+
+This wrapper module provides organization-wide standards:
+
+- **Naming convention**: `{project}-{environment}-{resource_name}`
+- **Standard tagging**: Merges project, environment, and component tags
+- **Environment-based defaults**: Configures resources based on environment (production vs staging)
+
 ## Usage
 
 ```hcl
 module "example" {
-  source = "../modules/this-module"
+  source = "./modules/MODULE_NAME"
   
-  context = {
-    project     = "my-project"
-    environment = "dev"
-    region      = "us-east-1"
-    common_tags = {
-      Environment = "dev"
-      ManagedBy   = "terraform"
-    }
-  }
+  context = local.context
   
-  # Add required variables here
+  # Module-specific variables
 }
 ```
 
@@ -115,7 +115,6 @@ No resources.
 | <a name="input_task_exec_iam_role_path"></a> [task\_exec\_iam\_role\_path](#input\_task\_exec\_iam\_role\_path) | IAM role path | `string` | `null` | no |
 | <a name="input_task_exec_iam_role_permissions_boundary"></a> [task\_exec\_iam\_role\_permissions\_boundary](#input\_task\_exec\_iam\_role\_permissions\_boundary) | ARN of the policy that is used to set the permissions boundary for the task execution IAM role | `string` | `null` | no |
 | <a name="input_task_exec_iam_role_policies"></a> [task\_exec\_iam\_role\_policies](#input\_task\_exec\_iam\_role\_policies) | Map of IAM policies to attach to the task execution IAM role | `map(string)` | `{}` | no |
-| <a name="input_task_exec_iam_role_statements"></a> [task\_exec\_iam\_role\_statements](#input\_task\_exec\_iam\_role\_statements) | Map of IAM policy statements for the task execution IAM role | `any` | `null` | no |
 | <a name="input_task_exec_iam_role_tags"></a> [task\_exec\_iam\_role\_tags](#input\_task\_exec\_iam\_role\_tags) | Additional tags to add to the task execution IAM role | `map(string)` | `{}` | no |
 | <a name="input_task_exec_iam_role_use_name_prefix"></a> [task\_exec\_iam\_role\_use\_name\_prefix](#input\_task\_exec\_iam\_role\_use\_name\_prefix) | Determines whether the IAM role name is used as a prefix | `bool` | `true` | no |
 | <a name="input_task_exec_secret_arns"></a> [task\_exec\_secret\_arns](#input\_task\_exec\_secret\_arns) | List of Secrets Manager secret ARNs the task execution role will be permitted to get/read | `list(string)` | `[]` | no |
@@ -138,7 +137,6 @@ No resources.
 |------|-------------|
 | <a name="output_autoscaling_policies"></a> [autoscaling\_policies](#output\_autoscaling\_policies) | Map of autoscaling policies and their attributes |
 | <a name="output_autoscaling_scheduled_actions"></a> [autoscaling\_scheduled\_actions](#output\_autoscaling\_scheduled\_actions) | Map of autoscaling scheduled actions and their attributes |
-| <a name="output_autoscaling_target_arn"></a> [autoscaling\_target\_arn](#output\_autoscaling\_target\_arn) | ARN of the autoscaling target |
 | <a name="output_container_definitions"></a> [container\_definitions](#output\_container\_definitions) | Container definitions used for the task definition |
 | <a name="output_iam_role_arn"></a> [iam\_role\_arn](#output\_iam\_role\_arn) | ARN of the service IAM role |
 | <a name="output_iam_role_name"></a> [iam\_role\_name](#output\_iam\_role\_name) | Name of the service IAM role |

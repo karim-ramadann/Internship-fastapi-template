@@ -11,23 +11,23 @@ This module manages AWS ECR registry-level settings (not individual repositories
 
 Note: ECR Registry is a regional resource with one registry per AWS account per region.
 
+## What This Module Adds
+
+This wrapper module provides organization-wide standards:
+
+- **Naming convention**: `{project}-{environment}-{resource_name}`
+- **Standard tagging**: Merges project, environment, and component tags
+- **Environment-based defaults**: Configures resources based on environment (production vs staging)
+
 ## Usage
 
 ```hcl
 module "example" {
-  source = "../modules/this-module"
+  source = "./modules/MODULE_NAME"
   
-  context = {
-    project     = "my-project"
-    environment = "dev"
-    region      = "us-east-1"
-    common_tags = {
-      Environment = "dev"
-      ManagedBy   = "terraform"
-    }
-  }
+  context = local.context
   
-  # Add required variables here
+  # Module-specific variables
 }
 ```
 
@@ -43,7 +43,7 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_ecr"></a> [ecr](#module\_ecr) | terraform-aws-modules/ecr/aws | ~> 2.3 |
+| <a name="module_ecr"></a> [ecr](#module\_ecr) | terraform-aws-modules/ecr/aws | ~> 3.0 |
 
 ## Resources
 

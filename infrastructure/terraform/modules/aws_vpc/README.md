@@ -22,23 +22,23 @@ Available when needed:
 - Custom DHCP options
 - Default security group management
 
+## What This Module Adds
+
+This wrapper module provides organization-wide standards:
+
+- **Naming convention**: `{project}-{environment}-{resource_name}`
+- **Standard tagging**: Merges project, environment, and component tags
+- **Environment-based defaults**: Configures resources based on environment (production vs staging)
+
 ## Usage
 
 ```hcl
 module "example" {
-  source = "../modules/this-module"
+  source = "./modules/MODULE_NAME"
   
-  context = {
-    project     = "my-project"
-    environment = "dev"
-    region      = "us-east-1"
-    common_tags = {
-      Environment = "dev"
-      ManagedBy   = "terraform"
-    }
-  }
+  context = local.context
   
-  # Add required variables here
+  # Module-specific variables
 }
 ```
 
@@ -54,7 +54,7 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | ~> 5.0 |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | ~> 6.0 |
 
 ## Resources
 
@@ -66,7 +66,6 @@ No resources.
 |------|-------------|------|---------|:--------:|
 | <a name="input_availability_zones"></a> [availability\_zones](#input\_availability\_zones) | List of availability zones for subnet placement | `list(string)` | n/a | yes |
 | <a name="input_context"></a> [context](#input\_context) | Context object containing project, environment, region, and common tags | <pre>object({<br/>    project     = string<br/>    environment = string<br/>    region      = string<br/>    common_tags = map(string)<br/>  })</pre> | n/a | yes |
-| <a name="input_assign_ipv6_address_on_creation"></a> [assign\_ipv6\_address\_on\_creation](#input\_assign\_ipv6\_address\_on\_creation) | Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address | `bool` | `false` | no |
 | <a name="input_create_database_internet_gateway_route"></a> [create\_database\_internet\_gateway\_route](#input\_create\_database\_internet\_gateway\_route) | Controls if an internet gateway route for public database access should be created | `bool` | `false` | no |
 | <a name="input_create_database_nat_gateway_route"></a> [create\_database\_nat\_gateway\_route](#input\_create\_database\_nat\_gateway\_route) | Controls if a NAT gateway route should be created to give internet access to the database subnets | `bool` | `false` | no |
 | <a name="input_create_database_subnet_group"></a> [create\_database\_subnet\_group](#input\_create\_database\_subnet\_group) | Controls if database subnet group should be created (n.b. database\_subnets must also be set) | `bool` | `false` | no |
@@ -97,45 +96,15 @@ No resources.
 | <a name="input_dhcp_options_netbios_node_type"></a> [dhcp\_options\_netbios\_node\_type](#input\_dhcp\_options\_netbios\_node\_type) | Specify netbios node\_type for DHCP options set (requires enable\_dhcp\_options set to true) | `string` | `""` | no |
 | <a name="input_dhcp_options_ntp_servers"></a> [dhcp\_options\_ntp\_servers](#input\_dhcp\_options\_ntp\_servers) | Specify a list of NTP servers for DHCP options set (requires enable\_dhcp\_options set to true) | `list(string)` | `[]` | no |
 | <a name="input_dhcp_options_tags"></a> [dhcp\_options\_tags](#input\_dhcp\_options\_tags) | Additional tags for the DHCP option set | `map(string)` | `{}` | no |
-| <a name="input_ec2messages_endpoint_private_dns_enabled"></a> [ec2messages\_endpoint\_private\_dns\_enabled](#input\_ec2messages\_endpoint\_private\_dns\_enabled) | Whether or not to associate a private hosted zone with the specified VPC for EC2 Messages endpoint | `bool` | `true` | no |
-| <a name="input_ec2messages_endpoint_security_group_ids"></a> [ec2messages\_endpoint\_security\_group\_ids](#input\_ec2messages\_endpoint\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface for EC2 Messages endpoint | `list(string)` | `[]` | no |
-| <a name="input_ec2messages_endpoint_subnet_ids"></a> [ec2messages\_endpoint\_subnet\_ids](#input\_ec2messages\_endpoint\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for EC2 Messages endpoint | `list(string)` | `[]` | no |
-| <a name="input_ecr_api_endpoint_private_dns_enabled"></a> [ecr\_api\_endpoint\_private\_dns\_enabled](#input\_ecr\_api\_endpoint\_private\_dns\_enabled) | Whether or not to associate a private hosted zone with the specified VPC for ECR API endpoint | `bool` | `true` | no |
-| <a name="input_ecr_api_endpoint_security_group_ids"></a> [ecr\_api\_endpoint\_security\_group\_ids](#input\_ecr\_api\_endpoint\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface for ECR API endpoint | `list(string)` | `[]` | no |
-| <a name="input_ecr_api_endpoint_subnet_ids"></a> [ecr\_api\_endpoint\_subnet\_ids](#input\_ecr\_api\_endpoint\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for ECR API endpoint | `list(string)` | `[]` | no |
-| <a name="input_ecr_dkr_endpoint_private_dns_enabled"></a> [ecr\_dkr\_endpoint\_private\_dns\_enabled](#input\_ecr\_dkr\_endpoint\_private\_dns\_enabled) | Whether or not to associate a private hosted zone with the specified VPC for ECR DKR endpoint | `bool` | `true` | no |
-| <a name="input_ecr_dkr_endpoint_security_group_ids"></a> [ecr\_dkr\_endpoint\_security\_group\_ids](#input\_ecr\_dkr\_endpoint\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface for ECR DKR endpoint | `list(string)` | `[]` | no |
-| <a name="input_ecr_dkr_endpoint_subnet_ids"></a> [ecr\_dkr\_endpoint\_subnet\_ids](#input\_ecr\_dkr\_endpoint\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for ECR DKR endpoint | `list(string)` | `[]` | no |
-| <a name="input_ecs_agent_endpoint_private_dns_enabled"></a> [ecs\_agent\_endpoint\_private\_dns\_enabled](#input\_ecs\_agent\_endpoint\_private\_dns\_enabled) | Whether or not to associate a private hosted zone with the specified VPC for ECS Agent endpoint | `bool` | `true` | no |
-| <a name="input_ecs_agent_endpoint_security_group_ids"></a> [ecs\_agent\_endpoint\_security\_group\_ids](#input\_ecs\_agent\_endpoint\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface for ECS Agent endpoint | `list(string)` | `[]` | no |
-| <a name="input_ecs_agent_endpoint_subnet_ids"></a> [ecs\_agent\_endpoint\_subnet\_ids](#input\_ecs\_agent\_endpoint\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for ECS Agent endpoint | `list(string)` | `[]` | no |
-| <a name="input_ecs_endpoint_private_dns_enabled"></a> [ecs\_endpoint\_private\_dns\_enabled](#input\_ecs\_endpoint\_private\_dns\_enabled) | Whether or not to associate a private hosted zone with the specified VPC for ECS endpoint | `bool` | `true` | no |
-| <a name="input_ecs_endpoint_security_group_ids"></a> [ecs\_endpoint\_security\_group\_ids](#input\_ecs\_endpoint\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface for ECS endpoint | `list(string)` | `[]` | no |
-| <a name="input_ecs_endpoint_subnet_ids"></a> [ecs\_endpoint\_subnet\_ids](#input\_ecs\_endpoint\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for ECS endpoint | `list(string)` | `[]` | no |
-| <a name="input_ecs_telemetry_endpoint_private_dns_enabled"></a> [ecs\_telemetry\_endpoint\_private\_dns\_enabled](#input\_ecs\_telemetry\_endpoint\_private\_dns\_enabled) | Whether or not to associate a private hosted zone with the specified VPC for ECS Telemetry endpoint | `bool` | `true` | no |
-| <a name="input_ecs_telemetry_endpoint_security_group_ids"></a> [ecs\_telemetry\_endpoint\_security\_group\_ids](#input\_ecs\_telemetry\_endpoint\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface for ECS Telemetry endpoint | `list(string)` | `[]` | no |
-| <a name="input_ecs_telemetry_endpoint_subnet_ids"></a> [ecs\_telemetry\_endpoint\_subnet\_ids](#input\_ecs\_telemetry\_endpoint\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for ECS Telemetry endpoint | `list(string)` | `[]` | no |
 | <a name="input_elasticache_route_table_tags"></a> [elasticache\_route\_table\_tags](#input\_elasticache\_route\_table\_tags) | Additional tags for the elasticache route tables | `map(string)` | `{}` | no |
 | <a name="input_elasticache_subnet_cidrs"></a> [elasticache\_subnet\_cidrs](#input\_elasticache\_subnet\_cidrs) | List of CIDR blocks for elasticache subnets | `list(string)` | `[]` | no |
 | <a name="input_elasticache_subnet_tags"></a> [elasticache\_subnet\_tags](#input\_elasticache\_subnet\_tags) | Additional tags for elasticache subnets | `map(string)` | `{}` | no |
 | <a name="input_enable_dhcp_options"></a> [enable\_dhcp\_options](#input\_enable\_dhcp\_options) | Should be true if you want to specify a DHCP options set with a custom domain name, DNS servers, NTP servers, netbios servers, and/or netbios server type | `bool` | `false` | no |
 | <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | Enable DNS hostnames in the VPC | `bool` | `true` | no |
 | <a name="input_enable_dns_support"></a> [enable\_dns\_support](#input\_enable\_dns\_support) | Enable DNS support in the VPC | `bool` | `true` | no |
-| <a name="input_enable_dynamodb_endpoint"></a> [enable\_dynamodb\_endpoint](#input\_enable\_dynamodb\_endpoint) | Should be true if you want to provision a DynamoDB endpoint to the VPC | `bool` | `false` | no |
-| <a name="input_enable_ec2messages_endpoint"></a> [enable\_ec2messages\_endpoint](#input\_enable\_ec2messages\_endpoint) | Should be true if you want to provision an EC2 Messages endpoint to the VPC | `bool` | `false` | no |
-| <a name="input_enable_ecr_api_endpoint"></a> [enable\_ecr\_api\_endpoint](#input\_enable\_ecr\_api\_endpoint) | Should be true if you want to provision an ECR API endpoint to the VPC | `bool` | `false` | no |
-| <a name="input_enable_ecr_dkr_endpoint"></a> [enable\_ecr\_dkr\_endpoint](#input\_enable\_ecr\_dkr\_endpoint) | Should be true if you want to provision an ECR DKR endpoint to the VPC | `bool` | `false` | no |
-| <a name="input_enable_ecs_agent_endpoint"></a> [enable\_ecs\_agent\_endpoint](#input\_enable\_ecs\_agent\_endpoint) | Should be true if you want to provision an ECS Agent endpoint to the VPC | `bool` | `false` | no |
-| <a name="input_enable_ecs_endpoint"></a> [enable\_ecs\_endpoint](#input\_enable\_ecs\_endpoint) | Should be true if you want to provision an ECS endpoint to the VPC | `bool` | `false` | no |
-| <a name="input_enable_ecs_telemetry_endpoint"></a> [enable\_ecs\_telemetry\_endpoint](#input\_enable\_ecs\_telemetry\_endpoint) | Should be true if you want to provision an ECS Telemetry endpoint to the VPC | `bool` | `false` | no |
 | <a name="input_enable_flow_log"></a> [enable\_flow\_log](#input\_enable\_flow\_log) | Whether or not to enable VPC Flow Logs | `bool` | `false` | no |
 | <a name="input_enable_ipv6"></a> [enable\_ipv6](#input\_enable\_ipv6) | Requests an Amazon-provided IPv6 CIDR block with a /56 prefix length for the VPC | `bool` | `false` | no |
-| <a name="input_enable_logs_endpoint"></a> [enable\_logs\_endpoint](#input\_enable\_logs\_endpoint) | Should be true if you want to provision a CloudWatch Logs endpoint to the VPC | `bool` | `false` | no |
 | <a name="input_enable_nat_gateway"></a> [enable\_nat\_gateway](#input\_enable\_nat\_gateway) | Enable NAT Gateway for private subnet internet access | `bool` | `true` | no |
-| <a name="input_enable_s3_endpoint"></a> [enable\_s3\_endpoint](#input\_enable\_s3\_endpoint) | Should be true if you want to provision an S3 endpoint to the VPC | `bool` | `false` | no |
-| <a name="input_enable_secretsmanager_endpoint"></a> [enable\_secretsmanager\_endpoint](#input\_enable\_secretsmanager\_endpoint) | Should be true if you want to provision a Secrets Manager endpoint to the VPC | `bool` | `false` | no |
-| <a name="input_enable_ssm_endpoint"></a> [enable\_ssm\_endpoint](#input\_enable\_ssm\_endpoint) | Should be true if you want to provision an SSM endpoint to the VPC | `bool` | `false` | no |
-| <a name="input_enable_ssmmessages_endpoint"></a> [enable\_ssmmessages\_endpoint](#input\_enable\_ssmmessages\_endpoint) | Should be true if you want to provision an SSM Messages endpoint to the VPC | `bool` | `false` | no |
 | <a name="input_enable_vpn_gateway"></a> [enable\_vpn\_gateway](#input\_enable\_vpn\_gateway) | Should be true if you want to create a new VPN Gateway resource and attach it to the VPC | `bool` | `false` | no |
 | <a name="input_external_nat_ip_ids"></a> [external\_nat\_ip\_ids](#input\_external\_nat\_ip\_ids) | List of EIP IDs to be assigned to the NAT Gateways (used in combination with reuse\_nat\_ips) | `list(string)` | `[]` | no |
 | <a name="input_flow_log_cloudwatch_log_group_kms_key_id"></a> [flow\_log\_cloudwatch\_log\_group\_kms\_key\_id](#input\_flow\_log\_cloudwatch\_log\_group\_kms\_key\_id) | The ARN of the KMS Key to use when encrypting log data for VPC flow logs | `string` | `null` | no |
@@ -153,9 +122,6 @@ No resources.
 | <a name="input_intra_route_table_tags"></a> [intra\_route\_table\_tags](#input\_intra\_route\_table\_tags) | Additional tags for the intra route tables | `map(string)` | `{}` | no |
 | <a name="input_intra_subnet_cidrs"></a> [intra\_subnet\_cidrs](#input\_intra\_subnet\_cidrs) | List of CIDR blocks for intra subnets (no internet access) | `list(string)` | `[]` | no |
 | <a name="input_intra_subnet_tags"></a> [intra\_subnet\_tags](#input\_intra\_subnet\_tags) | Additional tags for intra subnets | `map(string)` | `{}` | no |
-| <a name="input_logs_endpoint_private_dns_enabled"></a> [logs\_endpoint\_private\_dns\_enabled](#input\_logs\_endpoint\_private\_dns\_enabled) | Whether or not to associate a private hosted zone with the specified VPC for CloudWatch Logs endpoint | `bool` | `true` | no |
-| <a name="input_logs_endpoint_security_group_ids"></a> [logs\_endpoint\_security\_group\_ids](#input\_logs\_endpoint\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface for CloudWatch Logs endpoint | `list(string)` | `[]` | no |
-| <a name="input_logs_endpoint_subnet_ids"></a> [logs\_endpoint\_subnet\_ids](#input\_logs\_endpoint\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for CloudWatch Logs endpoint | `list(string)` | `[]` | no |
 | <a name="input_manage_default_network_acl"></a> [manage\_default\_network\_acl](#input\_manage\_default\_network\_acl) | Should be true to adopt and manage Default Network ACL | `bool` | `false` | no |
 | <a name="input_manage_default_route_table"></a> [manage\_default\_route\_table](#input\_manage\_default\_route\_table) | Should be true to manage default route table | `bool` | `false` | no |
 | <a name="input_manage_default_security_group"></a> [manage\_default\_security\_group](#input\_manage\_default\_security\_group) | Should be true to adopt and manage default security group | `bool` | `true` | no |
@@ -172,16 +138,7 @@ No resources.
 | <a name="input_redshift_subnet_cidrs"></a> [redshift\_subnet\_cidrs](#input\_redshift\_subnet\_cidrs) | List of CIDR blocks for redshift subnets | `list(string)` | `[]` | no |
 | <a name="input_redshift_subnet_tags"></a> [redshift\_subnet\_tags](#input\_redshift\_subnet\_tags) | Additional tags for redshift subnets | `map(string)` | `{}` | no |
 | <a name="input_reuse_nat_ips"></a> [reuse\_nat\_ips](#input\_reuse\_nat\_ips) | Should be true if you don't want EIPs to be created for your NAT Gateways and will instead pass them in via the external\_nat\_ip\_ids variable | `bool` | `false` | no |
-| <a name="input_secretsmanager_endpoint_private_dns_enabled"></a> [secretsmanager\_endpoint\_private\_dns\_enabled](#input\_secretsmanager\_endpoint\_private\_dns\_enabled) | Whether or not to associate a private hosted zone with the specified VPC for Secrets Manager endpoint | `bool` | `true` | no |
-| <a name="input_secretsmanager_endpoint_security_group_ids"></a> [secretsmanager\_endpoint\_security\_group\_ids](#input\_secretsmanager\_endpoint\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface for Secrets Manager endpoint | `list(string)` | `[]` | no |
-| <a name="input_secretsmanager_endpoint_subnet_ids"></a> [secretsmanager\_endpoint\_subnet\_ids](#input\_secretsmanager\_endpoint\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for Secrets Manager endpoint | `list(string)` | `[]` | no |
 | <a name="input_single_nat_gateway"></a> [single\_nat\_gateway](#input\_single\_nat\_gateway) | Use a single NAT Gateway for all private subnets (cost-effective for dev/staging, set to false for production) | `bool` | `true` | no |
-| <a name="input_ssm_endpoint_private_dns_enabled"></a> [ssm\_endpoint\_private\_dns\_enabled](#input\_ssm\_endpoint\_private\_dns\_enabled) | Whether or not to associate a private hosted zone with the specified VPC for SSM endpoint | `bool` | `true` | no |
-| <a name="input_ssm_endpoint_security_group_ids"></a> [ssm\_endpoint\_security\_group\_ids](#input\_ssm\_endpoint\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface for SSM endpoint | `list(string)` | `[]` | no |
-| <a name="input_ssm_endpoint_subnet_ids"></a> [ssm\_endpoint\_subnet\_ids](#input\_ssm\_endpoint\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for SSM endpoint | `list(string)` | `[]` | no |
-| <a name="input_ssmmessages_endpoint_private_dns_enabled"></a> [ssmmessages\_endpoint\_private\_dns\_enabled](#input\_ssmmessages\_endpoint\_private\_dns\_enabled) | Whether or not to associate a private hosted zone with the specified VPC for SSM Messages endpoint | `bool` | `true` | no |
-| <a name="input_ssmmessages_endpoint_security_group_ids"></a> [ssmmessages\_endpoint\_security\_group\_ids](#input\_ssmmessages\_endpoint\_security\_group\_ids) | The ID of one or more security groups to associate with the network interface for SSM Messages endpoint | `list(string)` | `[]` | no |
-| <a name="input_ssmmessages_endpoint_subnet_ids"></a> [ssmmessages\_endpoint\_subnet\_ids](#input\_ssmmessages\_endpoint\_subnet\_ids) | The ID of one or more subnets in which to create a network interface for SSM Messages endpoint | `list(string)` | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags to merge with common tags | `map(string)` | `{}` | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block for VPC | `string` | `"10.0.0.0/16"` | no |
 | <a name="input_vpc_tags"></a> [vpc\_tags](#input\_vpc\_tags) | Additional tags for the VPC | `map(string)` | `{}` | no |
@@ -228,18 +185,6 @@ No resources.
 | <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | CIDR block of the VPC |
 | <a name="output_vpc_default_network_acl_id"></a> [vpc\_default\_network\_acl\_id](#output\_vpc\_default\_network\_acl\_id) | ID of the default network ACL |
 | <a name="output_vpc_default_security_group_id"></a> [vpc\_default\_security\_group\_id](#output\_vpc\_default\_security\_group\_id) | ID of the default security group |
-| <a name="output_vpc_endpoint_dynamodb_id"></a> [vpc\_endpoint\_dynamodb\_id](#output\_vpc\_endpoint\_dynamodb\_id) | ID of VPC endpoint for DynamoDB |
-| <a name="output_vpc_endpoint_ec2messages_id"></a> [vpc\_endpoint\_ec2messages\_id](#output\_vpc\_endpoint\_ec2messages\_id) | ID of VPC endpoint for EC2 Messages |
-| <a name="output_vpc_endpoint_ecr_api_id"></a> [vpc\_endpoint\_ecr\_api\_id](#output\_vpc\_endpoint\_ecr\_api\_id) | ID of VPC endpoint for ECR API |
-| <a name="output_vpc_endpoint_ecr_dkr_id"></a> [vpc\_endpoint\_ecr\_dkr\_id](#output\_vpc\_endpoint\_ecr\_dkr\_id) | ID of VPC endpoint for ECR DKR |
-| <a name="output_vpc_endpoint_ecs_agent_id"></a> [vpc\_endpoint\_ecs\_agent\_id](#output\_vpc\_endpoint\_ecs\_agent\_id) | ID of VPC endpoint for ECS Agent |
-| <a name="output_vpc_endpoint_ecs_id"></a> [vpc\_endpoint\_ecs\_id](#output\_vpc\_endpoint\_ecs\_id) | ID of VPC endpoint for ECS |
-| <a name="output_vpc_endpoint_ecs_telemetry_id"></a> [vpc\_endpoint\_ecs\_telemetry\_id](#output\_vpc\_endpoint\_ecs\_telemetry\_id) | ID of VPC endpoint for ECS Telemetry |
-| <a name="output_vpc_endpoint_logs_id"></a> [vpc\_endpoint\_logs\_id](#output\_vpc\_endpoint\_logs\_id) | ID of VPC endpoint for CloudWatch Logs |
-| <a name="output_vpc_endpoint_s3_id"></a> [vpc\_endpoint\_s3\_id](#output\_vpc\_endpoint\_s3\_id) | ID of VPC endpoint for S3 |
-| <a name="output_vpc_endpoint_secretsmanager_id"></a> [vpc\_endpoint\_secretsmanager\_id](#output\_vpc\_endpoint\_secretsmanager\_id) | ID of VPC endpoint for Secrets Manager |
-| <a name="output_vpc_endpoint_ssm_id"></a> [vpc\_endpoint\_ssm\_id](#output\_vpc\_endpoint\_ssm\_id) | ID of VPC endpoint for SSM |
-| <a name="output_vpc_endpoint_ssmmessages_id"></a> [vpc\_endpoint\_ssmmessages\_id](#output\_vpc\_endpoint\_ssmmessages\_id) | ID of VPC endpoint for SSM Messages |
 | <a name="output_vpc_flow_log_cloudwatch_log_group_arn"></a> [vpc\_flow\_log\_cloudwatch\_log\_group\_arn](#output\_vpc\_flow\_log\_cloudwatch\_log\_group\_arn) | ARN of the CloudWatch Log Group for VPC Flow Logs |
 | <a name="output_vpc_flow_log_id"></a> [vpc\_flow\_log\_id](#output\_vpc\_flow\_log\_id) | ID of the VPC Flow Log |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | ID of the VPC |

@@ -4,6 +4,6 @@ terraform {
     region       = "eu-west-1"
     use_lockfile = true
     # key is passed via -backend-config per environment
-    # Example: -backend-config="key=runtime/dev/terraform.tfstate"
+    # Example: -backend-config=environments/dev/backend.hcl
   }
 }

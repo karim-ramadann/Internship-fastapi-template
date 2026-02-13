@@ -14,7 +14,7 @@
 
 module "ecr" {
   source  = "terraform-aws-modules/ecr/aws"
-  version = "~> 2.3"
+  version = "~> 3.0"
 
   # Disable repository creation - this module is for registry-level config only
   create_repository = false

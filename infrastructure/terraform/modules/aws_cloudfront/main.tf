@@ -27,7 +27,7 @@ locals {
 
 module "cloudfront" {
   source  = "terraform-aws-modules/cloudfront/aws"
-  version = "~> 3.4"
+  version = "~> 6.0"
 
   comment             = var.comment != null ? var.comment : "CloudFront distribution for ${local.distribution_name}"
   enabled             = var.enabled

@@ -3,7 +3,7 @@
 # ============================================================================
 
 module "database" {
-  source = "../modules/database"
+  source = "../modules/aws_rds_postgresql"
 
   context = local.context
 

@@ -22,7 +22,7 @@ module "ecs_cluster" {
 
   # CloudWatch logging
   create_cloudwatch_log_group            = true
-  cloudwatch_log_group_retention_in_days = local.log_retention_days
+  cloudwatch_log_group_retention_in_days = var.log_retention_days
 
   tags = {
     Component = "ecs-cluster"
@@ -43,8 +43,8 @@ module "ecs_service_backend" {
   platform_version = "LATEST"
 
   # Task definition
-  cpu    = var.task_cpu
-  memory = var.task_memory
+  cpu                      = var.task_cpu
+  memory                   = var.task_memory
   requires_compatibilities = ["FARGATE"]
 
   # Container definitions
@@ -180,10 +180,10 @@ module "ecs_service_backend" {
   }
 
   # Networking
-  subnet_ids         = module.vpc.private_subnet_ids
+  subnet_ids            = module.vpc.private_subnet_ids
   create_security_group = false
-  security_group_ids = [module.ecs_security_group.security_group_id]
-  assign_public_ip   = false
+  security_group_ids    = [module.ecs_security_group.security_group_id]
+  assign_public_ip      = false
 
   # Service configuration
   desired_count                      = var.ecs_desired_count

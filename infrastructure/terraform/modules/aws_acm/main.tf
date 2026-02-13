@@ -24,7 +24,7 @@ locals {
 
 module "acm" {
   source  = "terraform-aws-modules/acm/aws"
-  version = "~> 5.0"
+  version = "~> 6.0"
 
   domain_name               = var.domain
   subject_alternative_names = var.subject_alternative_names != null ? var.subject_alternative_names : ["*.${var.domain}"]
