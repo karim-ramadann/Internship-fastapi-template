@@ -170,7 +170,7 @@ module "ecs_service_backend" {
 
       # Health check
       health_check = {
-        command     = ["CMD-SHELL", "curl -f http://localhost/api/health || exit 1"]
+        command     = ["CMD-SHELL", "curl -f http://localhost/api/v1/utils/health-check/ || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3

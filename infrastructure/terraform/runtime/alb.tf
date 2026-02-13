@@ -69,7 +69,7 @@ module "alb" {
         unhealthy_threshold = 3
         timeout             = 5
         interval            = 30
-        path                = "/api/health"
+        path                = "/api/v1/utils/health-check/"
         protocol            = "HTTP"
         matcher             = "200"
       }
