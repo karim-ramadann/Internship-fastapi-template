@@ -29,6 +29,20 @@ module "ecs_cluster" {
   }
 }
 
+# CloudWatch Log Group for Backend Service
+resource "aws_cloudwatch_log_group" "backend" {
+  name              = "/ecs/${var.environment}/${var.project}/backend"
+  retention_in_days = var.log_retention_days
+
+  tags = merge(
+    local.context.common_tags,
+    {
+      Name      = "${var.project}-backend-logs-${var.environment}"
+      Component = "logging"
+    }
+  )
+}
+
 # ECS Service for Backend
 module "ecs_service_backend" {
   source = "../modules/aws_ecs_service"
@@ -161,10 +175,9 @@ module "ecs_service_backend" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = "/ecs/${var.environment}/${var.project}/backend"
+          "awslogs-group"         = aws_cloudwatch_log_group.backend.name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
-          "awslogs-create-group"  = "true"
         }
       }
 
