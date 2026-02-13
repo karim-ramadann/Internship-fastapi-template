@@ -60,7 +60,7 @@ module "alb" {
     backend = {
       name             = "${var.project}-backend-tg-${var.environment}"
       backend_protocol = "HTTP"
-      backend_port     = 80
+      backend_port     = 8000
       target_type      = "ip"
 
       health_check = {

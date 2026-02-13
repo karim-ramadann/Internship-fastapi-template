@@ -71,8 +71,8 @@ module "ecs_service_backend" {
       portMappings = [
         {
           name          = "backend"
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 8000
+          hostPort      = 8000
           protocol      = "tcp"
           appProtocol   = "http"
         }
@@ -183,7 +183,7 @@ module "ecs_service_backend" {
 
       # Health check
       healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost/api/v1/utils/health-check/ || exit 1"]
+        command     = ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/utils/health-check/ || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3
@@ -216,7 +216,7 @@ module "ecs_service_backend" {
   load_balancer = {
     backend = {
       container_name   = "backend"
-      container_port   = 80
+      container_port   = 8000
       target_group_arn = module.alb.target_groups["backend"].arn
     }
   }
