@@ -54,7 +54,7 @@ module "ecs_service_backend" {
       image     = "${module.ecr_backend.repository_url}:${var.backend_image_tag}"
       essential = true
 
-      port_mappings = [
+      portMappings = [
         {
           name          = "backend"
           containerPort = 80
@@ -158,7 +158,7 @@ module "ecs_service_backend" {
 
       # CloudWatch Logs
       # Naming standard: /service/env/project/component (hierarchical)
-      log_configuration = {
+      logConfiguration = {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = "/ecs/${var.environment}/${var.project}/backend"
@@ -169,7 +169,7 @@ module "ecs_service_backend" {
       }
 
       # Health check
-      health_check = {
+      healthCheck = {
         command     = ["CMD-SHELL", "curl -f http://localhost/api/v1/utils/health-check/ || exit 1"]
         interval    = 30
         timeout     = 5
