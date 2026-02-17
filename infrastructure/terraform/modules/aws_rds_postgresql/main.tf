@@ -1,14 +1,3 @@
-# Random password for RDS master user
-resource "random_password" "db_password" {
-  length           = 32
-  special          = true
-  override_special = "!_-"
-
-  lifecycle {
-    ignore_changes = [length, special, override_special]
-  }
-}
-
 # DB Subnet Group
 resource "aws_db_subnet_group" "main" {
   # Naming standard: project-resource-name-env (flat)
@@ -48,8 +37,8 @@ module "rds" {
   db_name             = var.db_name
   username            = var.db_username
   port                = 5432
-  password_wo         = random_password.db_password.result
-  password_wo_version = 1
+  # Let RDS manage the master password via Secrets Manager
+  manage_master_user_password = true
 
   # Network
   multi_az               = var.rds_multi_az
@@ -88,24 +77,4 @@ module "rds" {
       Name = "${var.context.project}-db-${var.context.environment}"
     }
   )
-}
-
-# Store credentials in Secrets Manager
-resource "aws_secretsmanager_secret" "db_credentials" {
-  name        = "${var.context.environment}/${var.context.project}/database/credentials"
-  description = "Database credentials for ${var.context.project} ${var.context.environment}"
-
-  tags = var.context.common_tags
-}
-
-resource "aws_secretsmanager_secret_version" "db_credentials" {
-  secret_id = aws_secretsmanager_secret.db_credentials.id
-  secret_string = jsonencode({
-    username = var.db_username
-    password = random_password.db_password.result
-    engine   = "postgres"
-    host     = module.rds.db_instance_address
-    port     = module.rds.db_instance_port
-    dbname   = var.db_name
-  })
 }

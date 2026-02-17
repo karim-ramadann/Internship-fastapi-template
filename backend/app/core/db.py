@@ -4,7 +4,10 @@ from app import crud
 from app.core.config import settings
 from app.models import User, UserCreate
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+engine = create_engine(
+    str(settings.SQLALCHEMY_DATABASE_URI),
+    connect_args={"sslmode": "require"} if settings.ENVIRONMENT != "local" else {},
+)
 
 
 # make sure all SQLModel models are imported (app.models) before initializing DB
