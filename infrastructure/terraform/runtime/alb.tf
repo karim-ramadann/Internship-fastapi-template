@@ -3,7 +3,8 @@
 # ============================================================================
 
 locals {
-  enable_https = var.acm_certificate_arn != ""
+  acm_cert_arn = var.domain != "" ? aws_acm_certificate.main[0].arn : var.acm_certificate_arn
+  enable_https = var.enable_https
 
   all_listeners = {
     https = {
@@ -11,7 +12,7 @@ locals {
       port            = 443
       protocol        = "HTTPS"
       ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-      certificate_arn = var.acm_certificate_arn
+      certificate_arn = local.acm_cert_arn
       forward         = { target_group_key = "backend" }
       redirect        = null
     }
