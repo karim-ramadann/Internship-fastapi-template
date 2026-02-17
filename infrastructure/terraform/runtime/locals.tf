@@ -3,9 +3,9 @@ locals {
   # TODO: Update these with your actual AWS account IDs (12-digit numbers)
   # Set to null to disable validation for a specific environment
   account_ids = {
-    dev        = null # "123456789012"  # Development account
-    staging    = null # "234567890123"  # Staging account
-    production = null # "345678901234"  # Production account
+    dev        = "782017371239" # Development account
+    staging    = "782017371239" # Staging account
+    production = "782017371239" # Production account
   }
 
   # Current AWS account information

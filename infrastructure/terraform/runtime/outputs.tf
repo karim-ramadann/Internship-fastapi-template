@@ -47,6 +47,23 @@ output "alb_zone_id" {
   value       = module.alb.zone_id
 }
 
+# ACM Outputs
+output "acm_certificate_arn" {
+  description = "ARN of the ACM certificate"
+  value       = var.domain != "" ? aws_acm_certificate.main[0].arn : null
+}
+
+output "acm_validation_records" {
+  description = "DNS validation records to create in the hosted zone account"
+  value = var.domain != "" ? {
+    for dvo in aws_acm_certificate.main[0].domain_validation_options : dvo.domain_name => {
+      name  = dvo.resource_record_name
+      type  = dvo.resource_record_type
+      value = dvo.resource_record_value
+    }
+  } : {}
+}
+
 output "alb_target_group_arn" {
   description = "ARN of the backend target group"
   value       = module.alb.target_groups["backend"].arn
