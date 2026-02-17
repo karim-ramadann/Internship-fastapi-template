@@ -60,7 +60,7 @@ module "alb" {
     backend = {
       name             = "${var.project}-backend-tg-${var.environment}"
       backend_protocol = "HTTP"
-      backend_port     = 80
+      backend_port     = 8000
       target_type      = "ip"
 
       health_check = {
@@ -69,7 +69,7 @@ module "alb" {
         unhealthy_threshold = 3
         timeout             = 5
         interval            = 30
-        path                = "/api/health"
+        path                = "/api/v1/utils/health-check/"
         protocol            = "HTTP"
         matcher             = "200"
       }

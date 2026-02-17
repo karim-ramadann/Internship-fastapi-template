@@ -29,6 +29,20 @@ module "ecs_cluster" {
   }
 }
 
+# CloudWatch Log Group for Backend Service
+resource "aws_cloudwatch_log_group" "backend" {
+  name              = "/ecs/${var.environment}/${var.project}/backend"
+  retention_in_days = var.log_retention_days
+
+  tags = merge(
+    local.context.common_tags,
+    {
+      Name      = "${var.project}-backend-logs-${var.environment}"
+      Component = "logging"
+    }
+  )
+}
+
 # ECS Service for Backend
 module "ecs_service_backend" {
   source = "../modules/aws_ecs_service"
@@ -54,11 +68,11 @@ module "ecs_service_backend" {
       image     = "${module.ecr_backend.repository_url}:${var.backend_image_tag}"
       essential = true
 
-      port_mappings = [
+      portMappings = [
         {
           name          = "backend"
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 8000
+          hostPort      = 8000
           protocol      = "tcp"
           appProtocol   = "http"
         }
@@ -158,19 +172,18 @@ module "ecs_service_backend" {
 
       # CloudWatch Logs
       # Naming standard: /service/env/project/component (hierarchical)
-      log_configuration = {
+      logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = "/ecs/${var.environment}/${var.project}/backend"
+          "awslogs-group"         = aws_cloudwatch_log_group.backend.name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
-          "awslogs-create-group"  = "true"
         }
       }
 
       # Health check
-      health_check = {
-        command     = ["CMD-SHELL", "curl -f http://localhost/api/health || exit 1"]
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/utils/health-check/ || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3
@@ -203,7 +216,7 @@ module "ecs_service_backend" {
   load_balancer = {
     backend = {
       container_name   = "backend"
-      container_port   = 80
+      container_port   = 8000
       target_group_arn = module.alb.target_groups["backend"].arn
     }
   }

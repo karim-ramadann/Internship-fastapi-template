@@ -121,8 +121,8 @@ module "ecs_security_group" {
 # Allow ALB to communicate with ECS tasks on container port
 resource "aws_security_group_rule" "alb_to_ecs" {
   type                     = "ingress"
-  from_port                = 80
-  to_port                  = 80
+  from_port                = 8000
+  to_port                  = 8000
   protocol                 = "tcp"
   security_group_id        = module.ecs_security_group.security_group_id
   source_security_group_id = module.alb_security_group.security_group_id

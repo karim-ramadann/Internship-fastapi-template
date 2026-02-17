@@ -1,6 +1,7 @@
 import secrets
 import warnings
 from typing import Annotated, Any, Literal
+from urllib.parse import quote_plus
 
 from pydantic import (
     AnyUrl,
@@ -17,7 +18,8 @@ from typing_extensions import Self
 
 def parse_cors(v: Any) -> list[str] | str:
     if isinstance(v, str) and not v.startswith("["):
-        return [i.strip() for i in v.split(",") if i.strip()]
+        items = [i.strip() for i in v.split(",") if i.strip()]
+        return items
     elif isinstance(v, list | str):
         return v
     raise ValueError(v)
@@ -38,15 +40,18 @@ class Settings(BaseSettings):
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     BACKEND_CORS_ORIGINS: Annotated[
-        list[AnyUrl] | str, BeforeValidator(parse_cors)
+        list[AnyUrl | str] | str, BeforeValidator(parse_cors)
     ] = []
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def all_cors_origins(self) -> list[str]:
-        return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [
-            self.FRONTEND_HOST
-        ]
+        if "*" in self.BACKEND_CORS_ORIGINS:
+            return ["*"]
+        origins = [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS]
+        if self.FRONTEND_HOST:
+            origins.append(self.FRONTEND_HOST)
+        return origins
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
@@ -62,7 +67,7 @@ class Settings(BaseSettings):
         return PostgresDsn.build(
             scheme="postgresql+psycopg",
             username=self.POSTGRES_USER,
-            password=self.POSTGRES_PASSWORD,
+            password=quote_plus(self.POSTGRES_PASSWORD),
             host=self.POSTGRES_SERVER,
             port=self.POSTGRES_PORT,
             path=self.POSTGRES_DB,
