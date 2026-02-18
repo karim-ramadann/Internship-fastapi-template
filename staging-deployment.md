@@ -143,9 +143,10 @@ AWS_REGION=$(terraform output -raw aws_region)
 aws ecr get-login-password --region $AWS_REGION | \
   docker login --username AWS --password-stdin $ECR_URL
 
-# Build the backend image (from repo root)
+# Build the backend image for amd64 (ECS Fargate requires linux/amd64)
+# This is important when building on Apple Silicon (M1/M2/M3) Macs
 cd ../../..
-docker build -t fastapi-backend:staging-latest -f backend/Dockerfile .
+docker build --platform linux/amd64 -t fastapi-backend:staging-latest -f backend/Dockerfile .
 
 # Tag and push
 docker tag fastapi-backend:staging-latest $ECR_URL:staging-latest
@@ -154,7 +155,65 @@ docker push $ECR_URL:staging-latest
 
 ---
 
-## 7. Force ECS Deployment
+## 7. Run Database Migrations (Standalone ECS Task)
+
+After the first deploy (or when there are new migrations), run the prestart script as a one-off ECS task. This runs `alembic upgrade head` and creates initial data.
+
+```bash
+cd infrastructure/terraform/runtime
+
+# Get the values needed for the task
+TASK_DEF=$(terraform output -raw ecs_task_definition_arn)
+CLUSTER=$(terraform output -raw ecs_cluster_name)
+
+# Get subnets and security group from the service config
+SUBNETS=$(aws ecs describe-services \
+  --cluster $CLUSTER \
+  --services $(terraform output -raw ecs_service_name) \
+  --region eu-west-1 \
+  --query 'services[0].networkConfiguration.awsvpcConfiguration.subnets' \
+  --output text | tr '\t' ',')
+
+SG=$(aws ecs describe-services \
+  --cluster $CLUSTER \
+  --services $(terraform output -raw ecs_service_name) \
+  --region eu-west-1 \
+  --query 'services[0].networkConfiguration.awsvpcConfiguration.securityGroups[0]' \
+  --output text)
+
+# Run the migration task
+TASK_ARN=$(aws ecs run-task \
+  --cluster $CLUSTER \
+  --task-definition $TASK_DEF \
+  --launch-type FARGATE \
+  --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SG],assignPublicIp=DISABLED}" \
+  --overrides '{"containerOverrides":[{"name":"backend","command":["bash","scripts/prestart.sh"]}]}' \
+  --region eu-west-1 \
+  --query 'tasks[0].taskArn' \
+  --output text)
+
+echo "Migration task started: $TASK_ARN"
+
+# Wait for it to complete
+aws ecs wait tasks-stopped --cluster $CLUSTER --tasks $TASK_ARN --region eu-west-1
+
+# Verify exit code (should be 0)
+aws ecs describe-tasks \
+  --cluster $CLUSTER \
+  --tasks $TASK_ARN \
+  --region eu-west-1 \
+  --query 'tasks[0].containers[0].exitCode'
+```
+
+Check the logs to confirm migrations ran:
+
+```bash
+aws logs tail /ecs/staging/fastapi/backend --since 10m --region eu-west-1 | grep -i "alembic\|migration\|initial data"
+```
+
+---
+
+## 8. Force ECS Deployment
 
 After pushing the image, force ECS to pick up the new image:
 
@@ -172,7 +231,7 @@ aws ecs update-service \
 
 ---
 
-## 8. Verify Deployment
+## 9. Verify Deployment
 
 ```bash
 # Check ECS service status
