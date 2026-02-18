@@ -79,6 +79,7 @@ services:
 
   backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    pull_policy: never
     restart: always
     networks:
       - traefik-public
