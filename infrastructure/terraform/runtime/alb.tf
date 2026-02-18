@@ -7,12 +7,10 @@ locals {
 }
 
 module "alb" {
-  source  = "terraform-aws-modules/alb/aws"
-  version = "~> 10.0"
+  source = "../modules/aws_alb"
 
-  name               = "${var.project}-alb-${var.environment}"
-  load_balancer_type = "application"
-  internal           = false
+  context = local.context
+  name    = "alb"
 
   vpc_id          = module.vpc.vpc_id
   subnets         = module.vpc.public_subnet_ids
@@ -70,12 +68,4 @@ module "alb" {
       }
     }
   }
-
-  tags = merge(
-    local.context.common_tags,
-    {
-      Name      = "${var.project}-alb-${var.environment}"
-      Component = "load-balancer"
-    }
-  )
 }

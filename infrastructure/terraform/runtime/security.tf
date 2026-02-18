@@ -4,11 +4,10 @@
 
 # ALB Security Group
 module "alb_security_group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 5.0"
+  source = "../modules/aws_security_group"
 
-  # Naming standard: project-resource-name-env (flat)
-  name        = "${var.project}-alb-sg-${var.environment}"
+  context     = local.context
+  name        = "alb-sg"
   description = "Security group for Application Load Balancer"
   vpc_id      = module.vpc.vpc_id
 
@@ -39,44 +38,26 @@ module "alb_security_group" {
       description = "Allow outbound to VPC only"
     }
   ]
-
-  tags = merge(
-    local.context.common_tags,
-    {
-      Name      = "${var.project}-alb-sg-${var.environment}"
-      Component = "security"
-    }
-  )
 }
 
 # RDS Security Group
 module "rds_security_group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 5.0"
+  source = "../modules/aws_security_group"
 
-  # Naming standard: project-resource-name-env (flat)
-  name        = "${var.project}-rds-sg-${var.environment}"
+  context     = local.context
+  name        = "rds-sg"
   description = "Security group for RDS PostgreSQL"
   vpc_id      = module.vpc.vpc_id
 
   # No ingress rules defined here - will be added via security group rules below
-
-  tags = merge(
-    local.context.common_tags,
-    {
-      Name      = "${var.project}-rds-sg-${var.environment}"
-      Component = "security"
-    }
-  )
 }
 
 # ECS Security Group
 module "ecs_security_group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 5.0"
+  source = "../modules/aws_security_group"
 
-  # Naming standard: project-resource-name-env (flat)
-  name        = "${var.project}-ecs-sg-${var.environment}"
+  context     = local.context
+  name        = "ecs-sg"
   description = "Security group for ECS Fargate tasks"
   vpc_id      = module.vpc.vpc_id
 
@@ -98,14 +79,6 @@ module "ecs_security_group" {
       description = "All traffic within VPC (RDS, service discovery)"
     }
   ]
-
-  tags = merge(
-    local.context.common_tags,
-    {
-      Name      = "${var.project}-ecs-sg-${var.environment}"
-      Component = "security"
-    }
-  )
 }
 
 # Security Group Rules
