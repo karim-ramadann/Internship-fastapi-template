@@ -44,6 +44,7 @@ services:
 
   prestart:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    pull_policy: build
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -78,6 +79,7 @@ services:
 
   backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    pull_policy: build
     restart: always
     networks:
       - traefik-public
@@ -138,6 +140,7 @@ services:
 
   frontend:
     image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
+    pull_policy: build
     restart: always
     networks:
       - traefik-public
