@@ -79,7 +79,6 @@ services:
 
   backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
-    pull_policy: build
     restart: always
     networks:
       - traefik-public
@@ -116,10 +115,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
