@@ -12,7 +12,7 @@ module "alb_security_group" {
   description = "Security group for Application Load Balancer"
   vpc_id      = module.vpc.vpc_id
 
-  ingress_with_cidr_blocks = local.enable_https ? [
+  ingress_with_cidr_blocks = [
     {
       from_port   = 443
       to_port     = 443
@@ -26,14 +26,6 @@ module "alb_security_group" {
       protocol    = "tcp"
       cidr_blocks = "0.0.0.0/0"
       description = "HTTP from anywhere (redirects to HTTPS)"
-    }
-    ] : [
-    {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = "0.0.0.0/0"
-      description = "HTTP from anywhere"
     }
   ]
 
@@ -121,8 +113,8 @@ module "ecs_security_group" {
 # Allow ALB to communicate with ECS tasks on container port
 resource "aws_security_group_rule" "alb_to_ecs" {
   type                     = "ingress"
-  from_port                = 80
-  to_port                  = 80
+  from_port                = 8000
+  to_port                  = 8000
   protocol                 = "tcp"
   security_group_id        = module.ecs_security_group.security_group_id
   source_security_group_id = module.alb_security_group.security_group_id

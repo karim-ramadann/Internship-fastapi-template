@@ -20,12 +20,13 @@ variable "subject_alternative_names" {
 }
 
 variable "route53_zone_id" {
-  description = "Route53 hosted zone ID for DNS validation records"
+  description = "Route53 hosted zone ID for DNS validation records. When empty, DNS records must be created externally"
   type        = string
+  default     = ""
 }
 
 variable "wait_for_validation" {
-  description = "Wait for certificate validation to complete before returning"
+  description = "Wait for certificate validation to complete before returning. Only applies when route53_zone_id is provided"
   type        = bool
   default     = true
 }

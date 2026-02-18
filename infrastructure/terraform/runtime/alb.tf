@@ -3,41 +3,7 @@
 # ============================================================================
 
 locals {
-  enable_https = var.acm_certificate_arn != ""
-
-  all_listeners = {
-    https = {
-      enabled         = local.enable_https
-      port            = 443
-      protocol        = "HTTPS"
-      ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-      certificate_arn = var.acm_certificate_arn
-      forward         = { target_group_key = "backend" }
-      redirect        = null
-    }
-    http_redirect = {
-      enabled         = local.enable_https
-      port            = 80
-      protocol        = "HTTP"
-      ssl_policy      = null
-      certificate_arn = null
-      forward         = null
-      redirect = {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-    http = {
-      enabled         = !local.enable_https
-      port            = 80
-      protocol        = "HTTP"
-      ssl_policy      = null
-      certificate_arn = null
-      forward         = { target_group_key = "backend" }
-      redirect        = null
-    }
-  }
+  acm_cert_arn = var.domain != "" ? module.acm[0].certificate_arn : var.acm_certificate_arn
 }
 
 module "alb" {
@@ -60,7 +26,7 @@ module "alb" {
     backend = {
       name             = "${var.project}-backend-tg-${var.environment}"
       backend_protocol = "HTTP"
-      backend_port     = 80
+      backend_port     = 8000
       target_type      = "ip"
 
       health_check = {
@@ -69,7 +35,7 @@ module "alb" {
         unhealthy_threshold = 3
         timeout             = 5
         interval            = 30
-        path                = "/api/health"
+        path                = "/api/v1/utils/health-check/"
         protocol            = "HTTP"
         matcher             = "200"
       }
@@ -87,14 +53,22 @@ module "alb" {
   }
 
   listeners = {
-    for k, v in local.all_listeners : k => {
-      port            = v.port
-      protocol        = v.protocol
-      ssl_policy      = v.ssl_policy
-      certificate_arn = v.certificate_arn
-      forward         = v.forward
-      redirect        = v.redirect
-    } if v.enabled
+    https = {
+      port            = 443
+      protocol        = "HTTPS"
+      ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+      certificate_arn = local.acm_cert_arn
+      forward         = { target_group_key = "backend" }
+    }
+    http_redirect = {
+      port     = 80
+      protocol = "HTTP"
+      redirect = {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
   }
 
   tags = merge(

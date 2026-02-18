@@ -25,8 +25,8 @@ output "db_username" {
 }
 
 output "db_password" {
-  description = "Master password"
-  value       = random_password.db_password.result
+  description = "Master password (managed by RDS via Secrets Manager)"
+  value       = null
   sensitive   = true
 }
 
@@ -41,6 +41,6 @@ output "db_instance_arn" {
 }
 
 output "secrets_manager_secret_arn" {
-  description = "ARN of the Secrets Manager secret containing database credentials"
-  value       = aws_secretsmanager_secret.db_credentials.arn
+  description = "ARN of the RDS-managed Secrets Manager secret containing database credentials"
+  value       = module.rds.db_instance_master_user_secret_arn
 }

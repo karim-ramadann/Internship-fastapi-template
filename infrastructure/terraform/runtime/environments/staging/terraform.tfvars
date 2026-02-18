@@ -37,9 +37,12 @@ autoscaling_min_capacity = 1
 autoscaling_max_capacity = 3
 
 # Application Configuration
-domain               = "staging.example.com"
-frontend_host        = "https://staging.example.com"
-backend_cors_origins = "https://staging.example.com"
+# No hosted zone available — use ALB DNS name directly.
+# After apply, get the ALB DNS from: terraform output alb_dns_name
+# Update these values once you have the ALB DNS or set up a domain later.
+domain               = "testing.digico.solutions"
+frontend_host        = "https://testing.digico.solutions"
+backend_cors_origins = "https://testing.digico.solutions"
 first_superuser      = "admin@example.com"
 emails_from_email    = "noreply@example.com"
 

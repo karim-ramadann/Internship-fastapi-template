@@ -86,13 +86,88 @@ Terraform loads variables in the following order (later sources override earlier
 3. `*.auto.tfvars` files (alphabetically)
 4. `-var` and `-var-file` command-line flags (in order specified)
 
+## AWS Account ID Management
+
+Each environment should deploy to a specific AWS account. To prevent accidental deployments to the wrong account, all account IDs are centrally managed in `../locals.tf` and automatically validated based on the environment variable.
+
+### Setting Up Account Validation
+
+1. **Get your AWS account IDs:**
+   ```bash
+   aws sts get-caller-identity --query Account --output text
+   ```
+
+2. **Update the account_ids map in `locals.tf`:**
+   ```hcl
+   # In terraform/runtime/locals.tf
+   locals {
+     account_ids = {
+       dev        = "123456789012"  # Your dev account ID
+       staging    = "234567890123"  # Your staging account ID
+       production = "345678901234"  # Your production account ID
+     }
+   }
+   ```
+
+3. **Terraform will automatically validate** that you're deploying to the correct account based on the `environment` variable.
+   - If the current AWS account doesn't match the expected account for that environment, deployment will be blocked
+   - Set to `null` to disable validation for a specific environment
+
+### How It Works
+
+- Account IDs are defined once in `locals.tf` in a map indexed by environment name
+- Terraform automatically looks up the expected account ID using `var.environment`
+- A precondition check validates the current account matches the expected account
+- Clear error messages show any mismatch before resources are created
+
+### Pre-Deployment Validation Script
+
+For an extra safety check before running Terraform commands, use the validation script:
+
+```bash
+# From the runtime directory
+./scripts/validate-account.sh dev
+./scripts/validate-account.sh production
+```
+
+This script checks your current AWS credentials against the expected account ID and provides clear error messages if there's a mismatch.
+
+### Account ID References in Code
+
+The current AWS account ID is available throughout your Terraform configuration:
+
+- **Via data source**: `data.aws_caller_identity.current.account_id`
+- **Via local**: `local.account_id` (recommended for cleaner code)
+- **Expected account**: `local.expected_account_id` (the account ID for current environment)
+
+Example usage in IAM policies:
+```hcl
+resource "aws_s3_bucket_policy" "example" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${local.account_id}:root"]
+    }
+  }
+}
+```
+
+### Benefits of This Approach
+
+- **Centralized Management**: All account IDs in one place (`locals.tf`)
+- **Automatic Validation**: No need to set account IDs in each environment's tfvars
+- **Environment-Aware**: Uses the `environment` variable to determine the expected account
+- **Easy Maintenance**: Add new environments by just updating the map in locals.tf
+
 ## Security Best Practices
 
 1. **Never commit secrets** to the tfvars files
-2. Use **environment variables** for sensitive data (`TF_VAR_*`)
-3. Store production secrets in a **secrets manager** (AWS Secrets Manager, HashiCorp Vault, etc.)
-4. Use **`.envrc`** with direnv for local development
-5. In CI/CD, use the platform's **secrets management** (GitHub Secrets, GitLab CI/CD Variables, etc.)
+2. **Set account IDs** in each environment's tfvars to prevent wrong-account deployments
+3. Use **environment variables** for sensitive data (`TF_VAR_*`)
+4. Store production secrets in a **secrets manager** (AWS Secrets Manager, HashiCorp Vault, etc.)
+5. Use **`.envrc`** with direnv for local development
+6. In CI/CD, use the platform's **secrets management** (GitHub Secrets, GitLab CI/CD Variables, etc.)
+7. **Validate AWS account** before deployments using the provided script or Terraform's built-in validation
 
 ## Environment Differences
 
