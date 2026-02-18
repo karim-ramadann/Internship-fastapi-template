@@ -7,7 +7,7 @@
 <!-- What problem does this solve? Link related issues -->
 
 ## Issue
-<!-- linear-issue-link -->
+ref: <!-- linear-issue-link -->
 
 ## Checklist
 
