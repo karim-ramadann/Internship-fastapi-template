@@ -22,7 +22,7 @@ variable "repository_type" {
 variable "image_tag_mutability" {
   description = "The tag mutability setting for the repository. Must be one of: MUTABLE or IMMUTABLE"
   type        = string
-  default     = "MUTABLE"
+  default     = "IMMUTABLE"
 }
 
 variable "image_scan_on_push" {
@@ -40,7 +40,7 @@ variable "force_delete" {
 variable "encryption_type" {
   description = "The encryption type for the repository. Must be one of: KMS or AES256"
   type        = string
-  default     = "AES256"
+  default     = "KMS"
 }
 
 variable "kms_key_arn" {

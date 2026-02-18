@@ -10,10 +10,10 @@ module "ecr_backend" {
 
   # Repository configuration
   repository_type      = "private"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
   image_scan_on_push   = true
   force_delete         = var.environment != "production" # Allow force delete for non-prod
-  encryption_type      = "AES256"
+  encryption_type      = "KMS"
 
   # Lifecycle policy to keep only the last 10 images
   create_lifecycle_policy = true

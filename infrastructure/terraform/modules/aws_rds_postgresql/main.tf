@@ -54,16 +54,19 @@ module "rds" {
   # Naming standard: project-resource-name-env (flat)
   final_snapshot_identifier_prefix = "${var.context.project}-db-final-snapshot-${var.context.environment}"
 
+  # IAM Database Authentication
+  iam_database_authentication_enabled = true
+
   # Protection
-  deletion_protection   = var.context.environment == "production"
+  deletion_protection   = true
   copy_tags_to_snapshot = true
 
   # CloudWatch Logs
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
 
   # Performance Insights
-  performance_insights_enabled          = var.context.environment == "production"
-  performance_insights_retention_period = var.context.environment == "production" ? 7 : null
+  performance_insights_enabled          = true
+  performance_insights_retention_period = 7
 
   # Monitoring
   monitoring_interval = var.context.environment == "production" ? 60 : 0

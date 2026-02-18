@@ -1,5 +1,20 @@
 # Trivy ignore file for Terraform security scanning
 # Add rule IDs here that you want to suppress with justification
 
-# Example:
-# AVD-AWS-0057  # Suppress: We intentionally use HTTP for internal ALB traffic
+# AVD-AWS-0053: ALB is intentionally public-facing (internet-facing web application)
+AVD-AWS-0053
+
+# AVD-AWS-0086: S3 public bucket module intentionally allows public ACLs for static assets
+AVD-AWS-0086
+
+# AVD-AWS-0087: S3 public bucket module intentionally allows public policies for static assets
+AVD-AWS-0087
+
+# AVD-AWS-0091: S3 public bucket module intentionally does not ignore public ACLs
+AVD-AWS-0091
+
+# AVD-AWS-0093: S3 public bucket module intentionally does not restrict public buckets
+AVD-AWS-0093
+
+# AVD-AWS-0089: S3 bucket logging - access logging adds cost and is optional for non-sensitive buckets
+AVD-AWS-0089
