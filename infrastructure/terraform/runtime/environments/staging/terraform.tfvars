@@ -43,7 +43,6 @@ autoscaling_max_capacity = 3
 domain               = "testing.digico.solutions"
 frontend_host        = "https://testing.digico.solutions"
 backend_cors_origins = "https://testing.digico.solutions"
-enable_https         = true
 first_superuser      = "admin@example.com"
 emails_from_email    = "noreply@example.com"
 

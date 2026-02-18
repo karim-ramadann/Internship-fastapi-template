@@ -25,38 +25,26 @@ resource "random_password" "first_superuser_password" {
   }
 }
 
-resource "aws_ssm_parameter" "secret_key" {
-  name  = "/${var.environment}/${var.project}/secret_key"
-  type  = "SecureString"
-  value = random_password.secret_key.result
+module "ssm_secret_key" {
+  source = "../modules/aws_ssm_parameter"
 
-  tags = local.context.common_tags
-
-  lifecycle {
-    ignore_changes = [value]
-  }
+  context = local.context
+  name    = "secret_key"
+  value   = random_password.secret_key.result
 }
 
-resource "aws_ssm_parameter" "first_superuser_password" {
-  name  = "/${var.environment}/${var.project}/first_superuser_password"
-  type  = "SecureString"
-  value = random_password.first_superuser_password.result
+module "ssm_first_superuser_password" {
+  source = "../modules/aws_ssm_parameter"
 
-  tags = local.context.common_tags
-
-  lifecycle {
-    ignore_changes = [value]
-  }
+  context = local.context
+  name    = "first_superuser_password"
+  value   = random_password.first_superuser_password.result
 }
 
-resource "aws_ssm_parameter" "smtp_password" {
-  name  = "/${var.environment}/${var.project}/smtp_password"
-  type  = "SecureString"
-  value = "placeholder"
+module "ssm_smtp_password" {
+  source = "../modules/aws_ssm_parameter"
 
-  tags = local.context.common_tags
-
-  lifecycle {
-    ignore_changes = [value]
-  }
+  context = local.context
+  name    = "smtp_password"
+  value   = "placeholder"
 }

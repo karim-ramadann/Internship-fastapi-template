@@ -238,11 +238,6 @@ variable "acm_certificate_arn" {
   default     = ""
 }
 
-variable "enable_https" {
-  description = "Enable HTTPS on the ALB. Set to true only after the ACM certificate is validated."
-  type        = bool
-  default     = false
-}
 
 # ============================================================================
 # Docker Image Variables

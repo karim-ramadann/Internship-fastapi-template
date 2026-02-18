@@ -12,7 +12,7 @@ module "alb_security_group" {
   description = "Security group for Application Load Balancer"
   vpc_id      = module.vpc.vpc_id
 
-  ingress_with_cidr_blocks = local.enable_https ? [
+  ingress_with_cidr_blocks = [
     {
       from_port   = 443
       to_port     = 443
@@ -26,14 +26,6 @@ module "alb_security_group" {
       protocol    = "tcp"
       cidr_blocks = "0.0.0.0/0"
       description = "HTTP from anywhere (redirects to HTTPS)"
-    }
-    ] : [
-    {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = "0.0.0.0/0"
-      description = "HTTP from anywhere"
     }
   ]
 

@@ -154,15 +154,15 @@ module "ecs_service_backend" {
       secrets = [
         {
           name      = "SECRET_KEY"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:secret_key::"
+          valueFrom = "${module.app_secrets.secret_arn}:secret_key::"
         },
         {
           name      = "FIRST_SUPERUSER_PASSWORD"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:first_superuser_password::"
+          valueFrom = "${module.app_secrets.secret_arn}:first_superuser_password::"
         },
         {
           name      = "SMTP_PASSWORD"
-          valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:smtp_password::"
+          valueFrom = "${module.app_secrets.secret_arn}:smtp_password::"
         },
         {
           name      = "POSTGRES_PASSWORD"
@@ -258,8 +258,8 @@ module "ecs_service_backend" {
   task_exec_secret_arns = [
     module.database.secrets_manager_secret_arn,
     "${module.database.secrets_manager_secret_arn}:*",
-    aws_secretsmanager_secret.app_secrets.arn,
-    "${aws_secretsmanager_secret.app_secrets.arn}:*"
+    module.app_secrets.secret_arn,
+    "${module.app_secrets.secret_arn}:*"
   ]
 
   tags = {

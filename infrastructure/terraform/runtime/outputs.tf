@@ -50,13 +50,13 @@ output "alb_zone_id" {
 # ACM Outputs
 output "acm_certificate_arn" {
   description = "ARN of the ACM certificate"
-  value       = var.domain != "" ? aws_acm_certificate.main[0].arn : null
+  value       = var.domain != "" ? module.acm[0].certificate_arn : null
 }
 
 output "acm_validation_records" {
   description = "DNS validation records to create in the hosted zone account"
   value = var.domain != "" ? {
-    for dvo in aws_acm_certificate.main[0].domain_validation_options : dvo.domain_name => {
+    for dvo in module.acm[0].validation_domains : dvo.domain_name => {
       name  = dvo.resource_record_name
       type  = dvo.resource_record_type
       value = dvo.resource_record_value
@@ -130,7 +130,7 @@ output "db_credentials_secret_arn" {
 
 output "app_secrets_arn" {
   description = "ARN of the Secrets Manager secret containing application secrets"
-  value       = aws_secretsmanager_secret.app_secrets.arn
+  value       = module.app_secrets.secret_arn
 }
 
 # ECS Cluster Outputs

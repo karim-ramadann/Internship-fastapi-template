@@ -2,24 +2,17 @@
 # ACM Certificate (DNS validation records managed in external account)
 # ============================================================================
 
-resource "aws_acm_certificate" "main" {
+module "acm" {
+  source = "../modules/aws_acm"
+
   count = var.domain != "" ? 1 : 0
 
-  domain_name               = var.domain
-  subject_alternative_names = ["*.${var.domain}"]
-  validation_method         = "DNS"
+  context = local.context
+  domain  = var.domain
 
-  tags = merge(
-    local.context.common_tags,
-    {
-      Name      = "${var.project}-cert-${var.environment}"
-      Component = "acm"
-    }
-  )
-
-  lifecycle {
-    create_before_destroy = true
-  }
+  # No Route53 zone in this account – DNS validation records must be
+  # created manually in the external hosted-zone account.
+  # route53_zone_id = ""   (default)
 }
 
 # ============================================================================
