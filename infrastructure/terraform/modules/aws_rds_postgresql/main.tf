@@ -58,14 +58,14 @@ module "rds" {
   iam_database_authentication_enabled = true
 
   # Protection
-  deletion_protection   = true
+  deletion_protection   = false
   copy_tags_to_snapshot = true
 
   # CloudWatch Logs
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
 
   # Performance Insights
-  performance_insights_enabled          = true
+  performance_insights_enabled          = false
   performance_insights_retention_period = 7
 
   # Monitoring

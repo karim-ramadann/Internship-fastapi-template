@@ -262,10 +262,20 @@ trivy-runtime:
 trivy-modules:
 	@echo "$(BLUE)Scanning modules for security issues...$(NC)"
 	@if command -v trivy >/dev/null 2>&1; then \
-		trivy config modules/ \
-			--severity CRITICAL,HIGH,MEDIUM \
-			--exit-code 0 \
-			--format table; \
+		for dir in modules/*/; do \
+			if [ -f "$$dir/main.tf" ]; then \
+				ignore_flag=""; \
+				if [ -f "$$dir/.trivyignore" ]; then \
+					ignore_flag="--ignorefile $$dir/.trivyignore"; \
+				fi; \
+				echo "  Scanning $$dir"; \
+				trivy config "$$dir" \
+					--severity CRITICAL,HIGH,MEDIUM \
+					--exit-code 0 \
+					--format table \
+					$$ignore_flag; \
+			fi \
+		done; \
 		echo ""; \
 		echo "$(GREEN)Modules security scan complete!$(NC)"; \
 	else \
@@ -286,11 +296,20 @@ trivy-all:
 			--ignorefile .trivyignore; \
 		echo ""; \
 		echo "$(YELLOW)Scanning modules...$(NC)"; \
-		trivy config modules/ \
-			--severity CRITICAL,HIGH,MEDIUM,LOW \
-			--exit-code 0 \
-			--format table \
-			--ignorefile .trivyignore; \
+		for dir in modules/*/; do \
+			if [ -f "$$dir/main.tf" ]; then \
+				ignore_flag=""; \
+				if [ -f "$$dir/.trivyignore" ]; then \
+					ignore_flag="--ignorefile $$dir/.trivyignore"; \
+				fi; \
+				echo "  Scanning $$dir"; \
+				trivy config "$$dir" \
+					--severity CRITICAL,HIGH,MEDIUM,LOW \
+					--exit-code 0 \
+					--format table \
+					$$ignore_flag; \
+			fi \
+		done; \
 		echo ""; \
 		echo "$(GREEN)Comprehensive security scan complete!$(NC)"; \
 	else \
