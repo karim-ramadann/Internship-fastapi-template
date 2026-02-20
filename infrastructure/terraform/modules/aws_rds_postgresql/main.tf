@@ -65,8 +65,8 @@ module "rds" {
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
 
   # Performance Insights
-  performance_insights_enabled          = false
-  performance_insights_retention_period = 7
+  performance_insights_enabled          = var.context.environment == "production"
+  performance_insights_retention_period = var.context.environment == "production" ? 7 : null
 
   # Monitoring
   monitoring_interval = var.context.environment == "production" ? 60 : 0
