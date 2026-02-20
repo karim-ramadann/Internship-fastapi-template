@@ -58,7 +58,7 @@ module "rds" {
   iam_database_authentication_enabled = true
 
   # Protection
-  deletion_protection   = false
+  deletion_protection   = var.context.environment == "production"
   copy_tags_to_snapshot = true
 
   # CloudWatch Logs
