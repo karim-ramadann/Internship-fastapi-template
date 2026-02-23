@@ -5,7 +5,7 @@
 data "aws_caller_identity" "current" {}
 
 locals {
-  account_id = data.aws_caller_identity.current.account_id
+  account_id        = data.aws_caller_identity.current.account_id
   oidc_provider_url = "token.actions.githubusercontent.com"
   # Use existing provider ARN or the one we create
   oidc_provider_arn = var.create_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : var.oidc_provider_arn
@@ -29,8 +29,8 @@ resource "aws_iam_openid_connect_provider" "github" {
 
 # IAM role assumable by GitHub Actions via OIDC
 resource "aws_iam_role" "github_actions" {
-  name               = var.role_name
-  description        = "Role for GitHub Actions (OIDC) - ${var.repository}"
+  name        = var.role_name
+  description = "Role for GitHub Actions (OIDC) - ${var.repository}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -61,8 +61,8 @@ locals {
 }
 
 resource "aws_iam_role_policy" "ecr" {
-  name   = "${var.role_name}-ecr"
-  role   = aws_iam_role.github_actions.id
+  name = "${var.role_name}-ecr"
+  role = aws_iam_role.github_actions.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -94,8 +94,8 @@ resource "aws_iam_role_policy" "ecr" {
 
 # S3 policy: read/write Terraform state bucket
 resource "aws_iam_role_policy" "s3_state" {
-  name   = "${var.role_name}-s3-state"
-  role   = aws_iam_role.github_actions.id
+  name = "${var.role_name}-s3-state"
+  role = aws_iam_role.github_actions.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -125,8 +125,8 @@ resource "aws_iam_role_policy" "s3_state" {
 resource "aws_iam_role_policy" "terraform_deploy" {
   count = var.attach_terraform_deploy_policy ? 1 : 0
 
-  name   = "${var.role_name}-terraform-deploy"
-  role   = aws_iam_role.github_actions.id
+  name = "${var.role_name}-terraform-deploy"
+  role = aws_iam_role.github_actions.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

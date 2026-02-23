@@ -34,9 +34,9 @@ module "rds" {
   storage_encrypted     = true
 
   # Database
-  db_name             = var.db_name
-  username            = var.db_username
-  port                = 5432
+  db_name  = var.db_name
+  username = var.db_username
+  port     = 5432
   # Let RDS manage the master password via Secrets Manager
   manage_master_user_password = true
 
