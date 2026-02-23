@@ -175,6 +175,12 @@ output "ecs_task_role_arn" {
   value       = module.ecs_service_backend.tasks_iam_role_arn
 }
 
+# GitHub OIDC (Actions role ARN - set as repo secret AWS_ROLE_ARN)
+output "github_actions_role_arn" {
+  description = "ARN of the IAM role for GitHub Actions (use as AWS_ROLE_ARN secret)"
+  value       = var.github_repository != "" ? module.github_oidc[0].role_arn : null
+}
+
 # Environment Information
 output "environment" {
   description = "Current environment name"

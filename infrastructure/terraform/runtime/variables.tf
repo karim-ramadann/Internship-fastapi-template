@@ -256,6 +256,40 @@ variable "ecr_repository_name" {
 }
 
 # ============================================================================
+# GitHub OIDC (Actions role)
+# ============================================================================
+
+variable "github_repository" {
+  description = "GitHub repository for OIDC role (org/repo). Empty = do not create OIDC role"
+  type        = string
+  default     = ""
+}
+
+variable "github_oidc_branch" {
+  description = "Optional branch restriction for GitHub Actions role (e.g. main)"
+  type        = string
+  default     = "main"
+}
+
+variable "github_oidc_environment" {
+  description = "Optional GitHub environment claim to restrict role (e.g. production)"
+  type        = string
+  default     = ""
+}
+
+variable "github_oidc_create_provider" {
+  description = "Create the GitHub OIDC provider in this env (set true in one env per account, e.g. dev)"
+  type        = bool
+  default     = false
+}
+
+variable "tfstate_bucket_name" {
+  description = "S3 bucket name for Terraform state (used for OIDC role S3 policy)"
+  type        = string
+  default     = "digico-fullstack-tfstate-bucket-development"
+}
+
+# ============================================================================
 # Common Tags
 # ============================================================================
 

@@ -44,4 +44,7 @@ locals {
 
   # Enable alarms for production
   enable_alarms = var.environment == "production"
+
+  # State key prefix for OIDC S3 policy (matches backend.hcl key path)
+  tfstate_key_prefix = var.environment == "dev" ? "development" : var.environment
 }

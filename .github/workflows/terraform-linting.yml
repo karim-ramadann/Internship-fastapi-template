@@ -1,0 +1,51 @@
+name: Terraform Linting
+
+on:
+  pull_request:
+    paths:
+      - 'infrastructure/terraform/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/terraform/**'
+
+jobs:
+  lint:
+    name: Terraform fmt, validate, tflint, trivy
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infrastructure/terraform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.4
+
+      - name: Terraform format check
+        run: make fmt-check
+
+      - name: Terraform init (CI)
+        run: make init-ci
+
+      - name: Terraform validate
+        run: make validate
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: TFLint
+        run: make tflint
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+
+      - name: Trivy security scan
+        run: make trivy-ci

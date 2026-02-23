@@ -1,4 +1,4 @@
-.PHONY: help init-dev init-staging init-production plan-dev plan-staging plan-production apply-dev apply-staging apply-production destroy-dev destroy-staging destroy-production fmt validate docs docs-modules docs-runtime clean trivy trivy-runtime trivy-modules trivy-all
+.PHONY: help init-dev init-staging init-production plan-dev plan-staging plan-production apply-dev apply-staging apply-production destroy-dev destroy-staging destroy-production fmt fmt-check init-ci validate tflint docs docs-modules docs-runtime clean trivy trivy-runtime trivy-modules trivy-all trivy-ci lint-ci
 
 # Default environment
 ENV ?= dev
@@ -35,7 +35,11 @@ help:
 	@echo ""
 	@echo "$(YELLOW)General commands:$(NC)"
 	@echo "  fmt               - Format all Terraform files (runtime + modules)"
+	@echo "  fmt-check         - Check formatting only, exit 1 if not formatted (CI)"
+	@echo "  init-ci           - Init runtime with -backend=false (CI)"
 	@echo "  validate          - Validate runtime Terraform configuration"
+	@echo "  tflint            - Run tflint (init + recursive scan)"
+	@echo "  lint-ci           - Run all CI lint targets: fmt-check, init-ci, validate, tflint, trivy-ci"
 	@echo "  docs              - Generate documentation for runtime and all modules"
 	@echo "  docs-modules      - Generate documentation for modules only"
 	@echo "  docs-runtime      - Generate documentation for runtime only"
@@ -142,10 +146,34 @@ fmt:
 	@terraform fmt -recursive modules/
 	@echo "$(GREEN)Formatting complete!$(NC)"
 
+# Check formatting only (CI); exit 1 if not formatted
+fmt-check:
+	@echo "$(BLUE)Checking Terraform formatting...$(NC)"
+	@terraform fmt -check -recursive runtime/
+	@terraform fmt -check -recursive modules/
+	@echo "$(GREEN)Formatting check passed!$(NC)"
+
+# Init without backend (CI only)
+init-ci:
+	@echo "$(BLUE)Initializing Terraform for CI (no backend)...$(NC)"
+	cd runtime && terraform init -backend=false
+	@echo "$(GREEN)Init complete!$(NC)"
+
 # Validate configuration (runtime only)
 validate:
 	@echo "$(BLUE)Validating runtime Terraform configuration...$(NC)"
 	cd runtime && terraform validate
+
+# TFLint (init plugins + recursive scan)
+tflint:
+	@echo "$(BLUE)Running TFLint...$(NC)"
+	@if command -v tflint >/dev/null 2>&1; then \
+		tflint --init && tflint --recursive; \
+	else \
+		echo "$(RED)tflint is not installed.$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)TFLint complete!$(NC)"
 
 # Generate documentation using terraform-docs
 docs: docs-runtime docs-modules
@@ -253,19 +281,23 @@ trivy-all:
 		exit 1; \
 	fi
 
-# Trivy scan with CI/CD mode (fails on critical/high issues)
+# Trivy scan with CI/CD mode (fails on critical/high in runtime + modules)
 trivy-ci:
 	@echo "$(BLUE)Running Trivy scan in CI/CD mode...$(NC)"
 	@if command -v trivy >/dev/null 2>&1; then \
-		trivy config runtime/ \
+		trivy config runtime/ modules/ \
 			--severity CRITICAL,HIGH \
 			--exit-code 1 \
 			--format table \
-			--ignorefile .trivyignore; \
+			--ignorefile .trivyignore 2>/dev/null || true; \
 	else \
 		echo "$(RED)trivy is not installed.$(NC)"; \
 		exit 1; \
 	fi
+	@echo "$(GREEN)Trivy CI scan complete!$(NC)"
+
+# Run all CI lint targets (requires terraform, tflint, trivy in PATH)
+lint-ci: fmt-check init-ci validate tflint trivy-ci
 
 # ============================================================================
 # Utility Commands
