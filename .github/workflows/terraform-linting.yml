@@ -2,13 +2,12 @@ name: Terraform Linting
 
 on:
   pull_request:
-    paths:
-      - 'infrastructure/terraform/**'
-  push:
     branches:
       - main
+      - staging
+      - dev
     paths:
-      - 'infrastructure/terraform/**'
+      - "infrastructure/terraform/**"
 
 jobs:
   lint:
