@@ -1,0 +1,78 @@
+name: Plan Terraform
+
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+      - dev
+    paths:
+      - "infrastructure/terraform/**"
+
+env:
+  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+  AWS_REGION: eu-west-1
+  TF_WORKING_DIR: "infrastructure/terraform/runtime"
+  TF_VERSION: "1.14.4"
+
+jobs:
+  plan:
+    name: "Terraform Plan"
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Set environment from branch
+        id: env
+        run: |
+          if [ "${{ github.base_ref }}" = "main" ] || [ "${{ github.base_ref }}" = "master" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          elif [ "${{ github.base_ref }}" = "staging" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -backend-config="environments/${{ steps.env.outputs.environment }}/backend.hcl"
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          set +e
+          terraform plan \
+            -var-file="environments/${{ steps.env.outputs.environment }}/terraform.tfvars" \
+            -detailed-exitcode
+          EXIT_CODE=$?
+          # Exit codes from -detailed-exitcode:
+          #   0 = no changes
+          #   1 = error (config broken, provider issue, etc.)
+          #   2 = changes present but plan succeeded
+          if [ $EXIT_CODE -eq 1 ]; then
+            echo "::error::Terraform plan failed with an error"
+            exit 1
+          fi
+          echo "Terraform plan completed successfully (exit code: $EXIT_CODE)"
+          exit 0
