@@ -9,8 +9,7 @@ locals {
   }
 
   # Current AWS account information
-  account_id          = data.aws_caller_identity.current.account_id
-  expected_account_id = lookup(local.account_ids, var.environment, null)
+  account_id = data.aws_caller_identity.current.account_id
 
   # Context object passed to all modules
   context = {
@@ -28,22 +27,8 @@ locals {
     )
   }
 
-  # Naming convention
-  name_prefix = "${var.project}-${var.environment}"
-
   # Use first 2 availability zones
   availability_zones = slice(data.aws_availability_zones.available.names, 0, 2)
-
-  # Subnet CIDR blocks
-  public_subnet_cidrs   = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnet_cidrs  = ["10.0.10.0/24", "10.0.11.0/24"]
-  database_subnet_cidrs = ["10.0.20.0/24", "10.0.21.0/24"]
-
-  # Log retention based on environment
-  log_retention_days = var.environment == "production" ? 30 : 7
-
-  # Enable alarms for production
-  enable_alarms = var.environment == "production"
 
   # State key prefix for OIDC S3 policy (matches backend.hcl key path)
   tfstate_key_prefix = var.environment == "dev" ? "development" : var.environment

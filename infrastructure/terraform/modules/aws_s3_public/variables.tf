@@ -16,7 +16,7 @@ variable "name" {
 variable "enable_versioning" {
   description = "Enable versioning on the bucket"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_website" {

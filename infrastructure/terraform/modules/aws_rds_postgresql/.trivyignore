@@ -1,0 +1,5 @@
+# AVD-AWS-0133: Performance Insights disabled intentionally for cost control in non-production
+AVD-AWS-0133
+
+# AVD-AWS-0177: Deletion Protection disabled intentionally for non-production environments
+AVD-AWS-0177
