@@ -2,10 +2,7 @@
 # GitHub OIDC Module - IAM provider and role for GitHub Actions
 # =============================================================================
 
-data "aws_caller_identity" "current" {}
-
 locals {
-  account_id        = data.aws_caller_identity.current.account_id
   oidc_provider_url = "token.actions.githubusercontent.com"
   # Use existing provider ARN or the one we create
   oidc_provider_arn = var.create_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : var.oidc_provider_arn
