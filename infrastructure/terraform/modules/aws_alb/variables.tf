@@ -148,13 +148,6 @@ variable "listeners" {
   default     = {}
 }
 
-# Listener Rules
-variable "listener_rules" {
-  description = "Map of listener rule configurations"
-  type        = any
-  default     = {}
-}
-
 # Route53
 variable "route53_records" {
   description = "Map of Route53 records to create for the load balancer"
