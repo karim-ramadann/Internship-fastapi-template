@@ -84,16 +84,7 @@ jobs:
 
       - name: Error out on pre-commit errors
         if: steps.precommit.outcome == 'failure'
-        run: |
-          # If hooks only auto-fixed files and the fixes were committed back,
-          # the working tree will be clean. Only fail if changes remain.
-          if git diff --quiet && git diff --staged --quiet; then
-            echo "Pre-commit hooks auto-fixed files. Fixes were committed back."
-            exit 0
-          else
-            echo "Pre-commit hooks found issues that could not be auto-fixed."
-            exit 1
-          fi
+        run: exit 1
 
   # https://github.com/marketplace/actions/alls-green#why
   pre-commit-alls-green:
