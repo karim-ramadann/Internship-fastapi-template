@@ -38,11 +38,6 @@ output "listeners" {
   value       = module.alb.listeners
 }
 
-output "listener_rules" {
-  description = "Map of listeners rules created and their attributes"
-  value       = module.alb.listener_rules
-}
-
 output "route53_records" {
   description = "Map of Route53 records created and their attributes"
   value       = module.alb.route53_records

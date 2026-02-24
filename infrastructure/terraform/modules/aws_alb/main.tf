@@ -67,9 +67,6 @@ module "alb" {
   # Listeners
   listeners = var.listeners
 
-  # Additional listener rules
-  listener_rules = var.listener_rules
-
   # Route53 alias
   route53_records = var.route53_records
 

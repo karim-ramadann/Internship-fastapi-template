@@ -115,15 +115,23 @@ variable "ip_address_type" {
 # Access Logs
 variable "access_logs" {
   description = "Map containing access logging configuration for load balancer"
-  type        = any
-  default     = {}
+  type = object({
+    bucket  = string
+    enabled = optional(bool, true)
+    prefix  = optional(string)
+  })
+  default = null
 }
 
 # Connection Logs
 variable "connection_logs" {
   description = "Map containing connection logging configuration for load balancer"
-  type        = any
-  default     = {}
+  type = object({
+    bucket  = string
+    enabled = optional(bool, true)
+    prefix  = optional(string)
+  })
+  default = null
 }
 
 # Target Groups
