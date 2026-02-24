@@ -1,0 +1,56 @@
+name: "Terraform Plan"
+description: "Run Terraform plan and upload the plan artifact"
+
+inputs:
+  environment:
+    description: "AWS environment to plan against (dev, staging, production)"
+    required: true
+  image_tag:
+    description: "Backend Docker image tag to deploy (e.g. production-abc1234)"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+        fetch-depth: 0
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.AWS_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.14.4
+
+    - name: Terraform Init
+      shell: bash
+      working-directory: ${{ env.TF_WORKING_DIR }}
+      run: terraform init -backend-config="environments/${{ inputs.environment }}/backend.hcl"
+
+    - name: Terraform Validate
+      shell: bash
+      working-directory: ${{ env.TF_WORKING_DIR }}
+      run: terraform validate
+
+    - name: Terraform Plan
+      shell: bash
+      working-directory: ${{ env.TF_WORKING_DIR }}
+      run: |
+        terraform plan \
+          -var-file="environments/${{ inputs.environment }}/terraform.tfvars" \
+          -var="backend_image_tag=${{ inputs.image_tag }}" \
+          -out=tfplan
+
+    - name: Upload Plan Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan-${{ inputs.environment }}
+        path: ${{ env.TF_WORKING_DIR }}/tfplan
+        retention-days: 1
+

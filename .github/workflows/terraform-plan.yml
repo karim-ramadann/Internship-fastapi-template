@@ -1,0 +1,39 @@
+name: Terraform Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "AWS Environment to plan"
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+        default: dev
+        required: true
+      image_tag:
+        description: "Backend Docker image tag to plan (e.g. production-abc1234)"
+        type: string
+        required: true
+
+env:
+  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+  AWS_REGION: "eu-west-1"
+  TF_WORKING_DIR: "infrastructure/terraform/runtime"
+  TF_ENVIRONMENT: ${{ inputs.environment }}
+
+jobs:
+  plan:
+    name: "Terraform Plan (${{ inputs.environment }})"
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Run Terraform Plan
+        uses: ./.github/actions/terraform-plan
+        with:
+          environment: ${{ inputs.environment }}
+          image_tag: ${{ inputs.image_tag }}
+
