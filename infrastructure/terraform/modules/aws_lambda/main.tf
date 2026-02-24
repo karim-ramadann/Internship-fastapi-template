@@ -59,6 +59,9 @@ module "lambda_function" {
   # Environment variables
   environment_variables = var.environment_variables
 
+  # X-Ray tracing
+  tracing_mode = var.tracing_mode
+
   # CloudWatch Logs (org standard)
   cloudwatch_logs_retention_in_days = local.log_retention
 

@@ -137,13 +137,7 @@ variable "security_group_ingress_rules" {
 variable "security_group_egress_rules" {
   description = "Security group egress rules to add to the security group created"
   type        = any
-  default = {
-    all_ipv4 = {
-      cidr_ipv4   = "0.0.0.0/0"
-      description = "Allow all IPv4 traffic"
-      ip_protocol = "-1"
-    }
-  }
+  default     = {}
 }
 
 variable "security_group_use_name_prefix" {

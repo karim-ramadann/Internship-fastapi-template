@@ -30,9 +30,6 @@ resource "null_resource" "account_validation" {
   }
 }
 
-# Current AWS region
-data "aws_region" "current" {}
-
 # Available availability zones in the region
 data "aws_availability_zones" "available" {
   state = "available"

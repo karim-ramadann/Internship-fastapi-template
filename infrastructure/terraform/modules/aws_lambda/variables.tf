@@ -71,6 +71,12 @@ variable "attach_policy_statements" {
   default     = false
 }
 
+variable "tracing_mode" {
+  description = "X-Ray tracing mode. Valid values are PassThrough and Active."
+  type        = string
+  default     = "Active"
+}
+
 variable "policy_statements" {
   description = "Map of IAM policy statements to attach to the Lambda role"
   type        = any

@@ -222,12 +222,6 @@ variable "log_retention_days" {
   default     = 7
 }
 
-variable "enable_alarms" {
-  description = "Enable CloudWatch alarms"
-  type        = bool
-  default     = false
-}
-
 # ============================================================================
 # TLS / Certificate Variables
 # ============================================================================

@@ -206,19 +206,19 @@ variable "dhcp_options_netbios_node_type" {
 variable "enable_flow_log" {
   description = "Whether or not to enable VPC Flow Logs"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "create_flow_log_cloudwatch_iam_role" {
   description = "Whether to create IAM role for VPC Flow Logs"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "create_flow_log_cloudwatch_log_group" {
   description = "Whether to create CloudWatch log group for VPC Flow Logs"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "flow_log_destination_type" {

@@ -54,6 +54,9 @@ module "rds" {
   # Naming standard: project-resource-name-env (flat)
   final_snapshot_identifier_prefix = "${var.context.project}-db-final-snapshot-${var.context.environment}"
 
+  # IAM Database Authentication
+  iam_database_authentication_enabled = true
+
   # Protection
   deletion_protection   = var.context.environment == "production"
   copy_tags_to_snapshot = true

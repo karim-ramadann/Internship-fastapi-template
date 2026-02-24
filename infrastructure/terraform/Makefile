@@ -1,4 +1,4 @@
-.PHONY: help init-dev init-staging init-production plan-dev plan-staging plan-production apply-dev apply-staging apply-production destroy-dev destroy-staging destroy-production fmt validate docs docs-modules docs-runtime clean trivy trivy-runtime trivy-modules trivy-all
+.PHONY: help init-dev init-staging init-production plan-dev plan-staging plan-production apply-dev apply-staging apply-production destroy-dev destroy-staging destroy-production fmt validate docs docs-modules docs-runtime clean trivy trivy-runtime trivy-modules trivy-all tflint tflint-runtime tflint-modules tflint-all
 
 # Default environment
 ENV ?= dev
@@ -40,6 +40,12 @@ help:
 	@echo "  docs-modules      - Generate documentation for modules only"
 	@echo "  docs-runtime      - Generate documentation for runtime only"
 	@echo "  clean             - Clean Terraform cache files from runtime"
+	@echo ""
+	@echo "$(YELLOW)Linting:$(NC)"
+	@echo "  tflint             - Lint runtime Terraform files (recommended)"
+	@echo "  tflint-runtime     - Lint runtime directory only"
+	@echo "  tflint-modules     - Lint all modules"
+	@echo "  tflint-all         - Lint both runtime and modules"
 	@echo ""
 	@echo "$(YELLOW)Security scanning:$(NC)"
 	@echo "  trivy             - Scan runtime for security issues (recommended)"
@@ -189,6 +195,46 @@ clean:
 	@echo "$(GREEN)Clean complete!$(NC)"
 
 # ============================================================================
+# Linting with TFLint
+# ============================================================================
+
+# Lint runtime directory (recommended - fast and focused)
+tflint: tflint-runtime
+
+tflint-runtime:
+	@echo "$(BLUE)Linting runtime Terraform files...$(NC)"
+	@if command -v tflint >/dev/null 2>&1; then \
+		cd runtime && tflint --init && tflint; \
+		echo "$(GREEN)Runtime lint complete!$(NC)"; \
+	else \
+		echo "$(RED)tflint is not installed.$(NC)"; \
+		echo "Install it from: https://github.com/terraform-linters/tflint"; \
+		echo "  macOS: brew install tflint"; \
+		exit 1; \
+	fi
+
+tflint-modules:
+	@echo "$(BLUE)Linting Terraform modules...$(NC)"
+	@if command -v tflint >/dev/null 2>&1; then \
+		for dir in modules/*/; do \
+			if [ -f "$$dir/main.tf" ]; then \
+				echo "  Linting $$dir"; \
+				cd "$$dir" && tflint --init && tflint; \
+				cd - >/dev/null; \
+			fi \
+		done; \
+		echo "$(GREEN)Module lint complete!$(NC)"; \
+	else \
+		echo "$(RED)tflint is not installed.$(NC)"; \
+		echo "Install it from: https://github.com/terraform-linters/tflint"; \
+		echo "  macOS: brew install tflint"; \
+		exit 1; \
+	fi
+
+tflint-all: tflint-runtime tflint-modules
+	@echo "$(GREEN)All linting complete!$(NC)"
+
+# ============================================================================
 # Security Scanning with Trivy
 # ============================================================================
 
@@ -216,10 +262,20 @@ trivy-runtime:
 trivy-modules:
 	@echo "$(BLUE)Scanning modules for security issues...$(NC)"
 	@if command -v trivy >/dev/null 2>&1; then \
-		trivy config modules/ \
-			--severity CRITICAL,HIGH,MEDIUM \
-			--exit-code 0 \
-			--format table; \
+		for dir in modules/*/; do \
+			if [ -f "$$dir/main.tf" ]; then \
+				ignore_flag=""; \
+				if [ -f "$$dir/.trivyignore" ]; then \
+					ignore_flag="--ignorefile $$dir/.trivyignore"; \
+				fi; \
+				echo "  Scanning $$dir"; \
+				trivy config "$$dir" \
+					--severity CRITICAL,HIGH,MEDIUM \
+					--exit-code 0 \
+					--format table \
+					$$ignore_flag; \
+			fi \
+		done; \
 		echo ""; \
 		echo "$(GREEN)Modules security scan complete!$(NC)"; \
 	else \
@@ -240,11 +296,20 @@ trivy-all:
 			--ignorefile .trivyignore; \
 		echo ""; \
 		echo "$(YELLOW)Scanning modules...$(NC)"; \
-		trivy config modules/ \
-			--severity CRITICAL,HIGH,MEDIUM,LOW \
-			--exit-code 0 \
-			--format table \
-			--ignorefile .trivyignore; \
+		for dir in modules/*/; do \
+			if [ -f "$$dir/main.tf" ]; then \
+				ignore_flag=""; \
+				if [ -f "$$dir/.trivyignore" ]; then \
+					ignore_flag="--ignorefile $$dir/.trivyignore"; \
+				fi; \
+				echo "  Scanning $$dir"; \
+				trivy config "$$dir" \
+					--severity CRITICAL,HIGH,MEDIUM,LOW \
+					--exit-code 0 \
+					--format table \
+					$$ignore_flag; \
+			fi \
+		done; \
 		echo ""; \
 		echo "$(GREEN)Comprehensive security scan complete!$(NC)"; \
 	else \
