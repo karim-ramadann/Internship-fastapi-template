@@ -1,0 +1,90 @@
+name: Deploy Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "AWS Environment to deploy"
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+        default: dev
+        required: true
+      image_tag:
+        description: "Backend Docker image tag to deploy (e.g. production-abc1234)"
+        type: string
+        required: true
+
+env:
+  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+  AWS_REGION: "eu-west-1"
+  TF_WORKING_DIR: "infrastructure/terraform/runtime"
+  TF_ENVIRONMENT: ${{ inputs.environment }}
+
+jobs:
+  plan:
+    name: "Terraform Plan (${{ inputs.environment }})"
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Run Terraform Plan
+        uses: ./.github/actions/terraform-plan
+        with:
+          environment: ${{ inputs.environment }}
+          image_tag: ${{ inputs.image_tag }}
+
+  apply:
+    name: "Terraform Apply (${{ inputs.environment }})"
+    runs-on: ubuntu-24.04
+    needs: plan
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.4
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -backend-config="environments/$TF_ENVIRONMENT/backend.hcl"
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ inputs.environment }}
+          path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Manual Approval for Production
+        if: inputs.environment == 'production'
+        uses: trstringer/manual-approval@74d99dff7380e3e4b122d4ededcbca2b6ce59367
+        timeout-minutes: 15
+        with:
+          secret: ${{ github.token }}
+          approvers: taha-digico
+          minimum-approvals: 1
+          issue-title: "Deploying Terraform to ${{ inputs.environment }}"
+          issue-body: "Please approve or deny the Terraform deployment of main branch to ${{ inputs.environment }}"
+          exclude-workflow-initiator-as-approver: false
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -auto-approve tfplan

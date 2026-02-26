@@ -62,6 +62,11 @@ enable_alarms      = true
 backend_image_tag   = "production-latest"
 ecr_repository_name = "backend"
 
+# GitHub OIDC (set to "org/repo" to create IAM role for GitHub Actions)
+github_repository       = ""
+github_oidc_branch      = "main"
+github_oidc_environment = "production"
+
 # Tags
 common_tags = {
   Environment = "production"

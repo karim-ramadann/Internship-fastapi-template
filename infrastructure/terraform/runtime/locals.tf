@@ -30,5 +30,6 @@ locals {
   # Use first 2 availability zones
   availability_zones = slice(data.aws_availability_zones.available.names, 0, 2)
 
-
+  # State key prefix for OIDC S3 policy (matches backend.hcl key path)
+  tfstate_key_prefix = var.environment == "dev" ? "development" : var.environment
 }

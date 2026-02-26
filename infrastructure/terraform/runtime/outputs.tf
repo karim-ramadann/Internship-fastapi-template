@@ -175,6 +175,12 @@ output "ecs_task_role_arn" {
   value       = module.ecs_service_backend.tasks_iam_role_arn
 }
 
+# GitHub OIDC (Actions role ARN - set as repo secret AWS_ROLE_ARN)
+output "github_actions_role_arn" {
+  description = "ARN of the IAM role for GitHub Actions (use as AWS_ROLE_ARN secret)"
+  value       = var.github_repository != "" ? module.github_oidc[0].role_arn : null
+}
+
 # Environment Information
 output "environment" {
   description = "Current environment name"
@@ -190,36 +196,36 @@ output "aws_region" {
 output "deployment_instructions" {
   description = "Instructions for deploying the application"
   value       = <<-EOT
-    
+
     ====================================================================================================
     DEPLOYMENT INSTRUCTIONS
     ====================================================================================================
-    
+
     1. Build and Push Docker Image:
-       
+
        # Login to ECR
        aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${module.ecr_backend.repository_url}
-       
+
        # Build the image
        docker build -t ${var.project}-backend:${var.backend_image_tag} ./backend
-       
+
        # Tag and push
        docker tag ${var.project}-backend:${var.backend_image_tag} ${module.ecr_backend.repository_url}:${var.backend_image_tag}
        docker push ${module.ecr_backend.repository_url}:${var.backend_image_tag}
-    
+
     2. Access the Application:
-       
+
        Backend API: http://${module.alb.dns_name}
        Health Check: http://${module.alb.dns_name}/api/health
-    
+
     3. View Logs:
-       
+
        aws logs tail /ecs/${var.environment}/${var.project}/backend --follow --region ${var.aws_region}
-    
+
     4. Update ECS Service (force new deployment):
-       
+
        aws ecs update-service --cluster ${module.ecs_cluster.cluster_name} --service ${module.ecs_service_backend.service_name} --force-new-deployment --region ${var.aws_region}
-    
+
     ====================================================================================================
   EOT
 }

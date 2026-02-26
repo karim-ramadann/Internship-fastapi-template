@@ -1,0 +1,72 @@
+name: Build and Push Backend
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - dev
+    paths:
+      - 'backend/**'
+      - 'backend/Dockerfile'
+      - 'Makefile'
+      - 'pyproject.toml'
+      - 'uv.lock'
+
+jobs:
+  build-push:
+    name: Build and push backend image
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+      PROJECT: ${{ vars.PROJECT || 'full-stack-fastapi-project' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set environment from branch
+        id: env
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ] || [ "${{ github.ref_name }}" = "master" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref_name }}" = "staging" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Get short SHA
+        id: vars
+        run: echo "short_sha=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: Set image tag and repository
+        id: image
+        run: |
+          echo "image_tag=${{ steps.env.outputs.environment }}-${{ steps.vars.outputs.short_sha }}" >> $GITHUB_OUTPUT
+          echo "ecr_repository=${{ env.PROJECT }}-${{ steps.env.outputs.environment }}-backend" >> $GITHUB_OUTPUT
+
+      - name: Build backend image
+        env:
+          IMAGE_TAG: ${{ steps.image.outputs.image_tag }}
+          ECR_REPOSITORY: ${{ steps.image.outputs.ecr_repository }}
+        run: make build-backend
+
+      - name: Push backend image
+        env:
+          IMAGE_TAG: ${{ steps.image.outputs.image_tag }}
+          ECR_REPOSITORY: ${{ steps.image.outputs.ecr_repository }}
+        run: make push-backend
