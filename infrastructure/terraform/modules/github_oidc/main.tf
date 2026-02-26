@@ -7,9 +7,11 @@ locals {
   # Use existing provider ARN or the one we create
   oidc_provider_arn = var.create_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : var.oidc_provider_arn
 
-  # Build sub claim: repo:org/repo:ref:refs/heads/main or repo:org/repo:* or repo:org/repo:environment:production
-  sub_claim = var.environment_claim != "" ? "repo:${var.repository}:environment:${var.environment_claim}" : (
-    var.branch != "" ? "repo:${var.repository}:ref:refs/heads/${var.branch}" : "repo:${var.repository}:*"
+  # Build sub claims list: branch-based + environment-based claims
+  # Supports both branch refs and GitHub environment deployments
+  oidc_sub_claims = concat(
+    var.branch != "" ? ["repo:${var.repository}:ref:refs/heads/${var.branch}"] : ["repo:${var.repository}:*"],
+    [for env in var.environment_claims : "repo:${var.repository}:environment:${env}"]
   )
 }
 
@@ -41,8 +43,8 @@ resource "aws_iam_role" "github_actions" {
           StringEquals = {
             "${local.oidc_provider_url}:aud" = "sts.amazonaws.com"
           }
-          StringLike = {
-            "${local.oidc_provider_url}:sub" = local.sub_claim
+          "ForAnyValue:StringLike" = {
+            "${local.oidc_provider_url}:sub" = local.oidc_sub_claims
           }
         }
       }

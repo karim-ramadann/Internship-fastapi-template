@@ -22,8 +22,8 @@ module "github_oidc" {
   create_oidc_provider = var.github_oidc_create_provider
   oidc_provider_arn    = var.github_oidc_create_provider ? null : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"
 
-  branch            = var.github_oidc_branch
-  environment_claim = var.github_oidc_environment
+  branch             = var.github_oidc_branch
+  environment_claims = var.github_oidc_environment_claims
 
   ecr_repository_arns            = [module.ecr_backend.repository_arn]
   attach_terraform_deploy_policy = true

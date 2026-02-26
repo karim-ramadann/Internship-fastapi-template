@@ -265,10 +265,10 @@ variable "github_oidc_branch" {
   default     = "main"
 }
 
-variable "github_oidc_environment" {
-  description = "Optional GitHub environment claim to restrict role (e.g. production)"
-  type        = string
-  default     = ""
+variable "github_oidc_environment_claims" {
+  description = "List of GitHub environment claims to allow for OIDC role (e.g. [\"dev\", \"staging\", \"production\"])"
+  type        = list(string)
+  default     = ["dev", "staging", "production"]
 }
 
 variable "github_oidc_create_provider" {

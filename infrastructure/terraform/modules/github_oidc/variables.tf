@@ -41,10 +41,10 @@ variable "branch" {
   default     = ""
 }
 
-variable "environment_claim" {
-  description = "Optional GitHub environment name to restrict (e.g. production)"
-  type        = string
-  default     = ""
+variable "environment_claims" {
+  description = "List of GitHub environment names to allow (e.g. [\"dev\", \"staging\", \"production\"])"
+  type        = list(string)
+  default     = []
 }
 
 variable "ecr_repository_arns" {
