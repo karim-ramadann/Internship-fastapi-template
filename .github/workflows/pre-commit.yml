@@ -6,10 +6,6 @@ on:
       - opened
       - synchronize
 
-env:
-  # Forks and Dependabot don't have access to secrets
-  HAS_SECRETS: ${{ secrets.PRE_COMMIT != '' }}
-
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
@@ -18,30 +14,37 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - uses: actions/checkout@v6
-        name: Checkout PR for own repo
-        if: env.HAS_SECRETS == 'true'
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        continue-on-error: true
         with:
-          # To be able to commit it needs to fetch the head of the branch, not the
-          # merge commit
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v6
+        name: Checkout PR (with push access)
+        if: steps.app-token.outcome == 'success'
+        with:
           ref: ${{ github.head_ref }}
-          # And it needs the full history to be able to compute diffs
           fetch-depth: 0
-          # A token other than the default GITHUB_TOKEN is needed to be able to trigger CI
-          token: ${{ secrets.PRE_COMMIT }}
-      # pre-commit lite ci needs the default checkout configs to work
+          token: ${{ steps.app-token.outputs.token }}
+
       - uses: actions/checkout@v6
-        name: Checkout PR for fork
-        if: env.HAS_SECRETS == 'false'
+        name: Checkout PR (fork/no secrets)
+        if: steps.app-token.outcome != 'success'
         with:
-        # To be able to commit it needs the head branch of the PR, the remote one
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+
       - uses: oven-sh/setup-bun@v2
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+
       - name: Setup uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -49,16 +52,20 @@ jobs:
             requirements**.txt
             pyproject.toml
             uv.lock
+
       - name: Install backend dependencies
         run: uv sync --all-packages
+
       - name: Install frontend dependencies
         run: bun ci
+
       - name: Run prek - pre-commit
         id: precommit
         run: uvx prek run --from-ref origin/${GITHUB_BASE_REF} --to-ref HEAD --show-diff-on-failure
         continue-on-error: true
+
       - name: Commit and push changes
-        if: env.HAS_SECRETS == 'true'
+        if: steps.app-token.outcome == 'success'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -69,16 +76,18 @@ jobs:
             git commit -m "🎨 Auto format and update with pre-commit"
             git push
           fi
+
       - uses: pre-commit-ci/lite-action@v1.1.0
-        if: env.HAS_SECRETS == 'false'
+        if: steps.app-token.outcome != 'success'
         with:
           msg: 🎨 Auto format and update with pre-commit
+
       - name: Error out on pre-commit errors
         if: steps.precommit.outcome == 'failure'
         run: exit 1
 
   # https://github.com/marketplace/actions/alls-green#why
-  pre-commit-alls-green:  # This job does nothing and is only used for the branch protection
+  pre-commit-alls-green:
     if: always()
     needs:
       - pre-commit
