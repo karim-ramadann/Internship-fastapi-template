@@ -65,7 +65,7 @@ ecr_repository_name = "backend"
 # GitHub OIDC (set to "org/repo" to create IAM role for GitHub Actions)
 github_repository       = ""
 github_oidc_branch      = "main"
-github_oidc_environment = "production"
+github_oidc_create_provider = true
 
 # Tags
 common_tags = {
