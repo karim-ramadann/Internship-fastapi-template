@@ -36,4 +36,3 @@ jobs:
         with:
           environment: ${{ inputs.environment }}
           image_tag: ${{ inputs.image_tag }}
-

@@ -53,4 +53,3 @@ runs:
         name: tfplan-${{ inputs.environment }}
         path: ${{ env.TF_WORKING_DIR }}/tfplan
         retention-days: 1
-
