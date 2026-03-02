@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -7,10 +5,10 @@ from typing import TYPE_CHECKING
 from sqlalchemy import DateTime
 from sqlmodel import Field, Relationship, SQLModel
 
+from app.models.base import get_datetime_utc
+
 if TYPE_CHECKING:
     from app.models.user import User
-
-from app.models.base import get_datetime_utc
 
 
 # Shared properties
@@ -39,7 +37,7 @@ class Item(ItemBase, table=True):
     owner_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
-    owner: User | None = Relationship(back_populates="items")
+    owner: "User" = Relationship(back_populates="items")
 
 
 # Properties to return via API, id is always required

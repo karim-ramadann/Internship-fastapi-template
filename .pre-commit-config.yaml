@@ -19,6 +19,13 @@ repos:
         exclude: ^frontend/src/client/.*
   - repo: local
     hooks:
+      - id: fmt
+        name: terraform fmt
+        entry: make -C infrastructure/terraform fmt
+        pass_filenames: false
+        language: system
+        files: ^infrastructure/terraform/
+
       - id: local-biome-check
         name: biome check
         entry: npm run lint
