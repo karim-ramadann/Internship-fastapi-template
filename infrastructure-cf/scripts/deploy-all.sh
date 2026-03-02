@@ -38,11 +38,11 @@ echo "Validating all CloudFormation templates..."
 for stack_info in "${STACKS[@]}"; do
   IFS=':' read -r stack_name template_file <<< "${stack_info}"
   echo "Validating ${template_file}..."
-  
+
   # TODO: Implement template validation
   # aws cloudformation validate-template \
   #   --template-body file://"${INFRA_DIR}/${template_file}" >/dev/null
-  
+
   echo "  ✓ ${template_file} is valid"
 done
 
@@ -54,12 +54,12 @@ echo ""
 for stack_info in "${STACKS[@]}"; do
   IFS=':' read -r stack_name template_file <<< "${stack_info}"
   FULL_STACK_NAME="${ENVIRONMENT}-${stack_name}"
-  
+
   echo "=========================================="
   echo "Deploying: ${FULL_STACK_NAME}"
   echo "Template: ${template_file}"
   echo "=========================================="
-  
+
   if [ "${DRY_RUN}" = "--dry-run" ]; then
     echo "DRY RUN: Would deploy ${FULL_STACK_NAME}"
   else
@@ -67,7 +67,7 @@ for stack_info in "${STACKS[@]}"; do
     # "${SCRIPT_DIR}/deploy-stack.sh" "${stack_name}" "${template_file}" "${ENVIRONMENT}" "${PARAMETER_FILE}"
     echo "Placeholder: Would deploy ${FULL_STACK_NAME}"
   fi
-  
+
   echo ""
 done
 

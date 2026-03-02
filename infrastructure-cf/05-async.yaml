@@ -17,27 +17,27 @@ Resources:
   # - MessageRetentionPeriod: 345600 (4 days)
   # - ReceiveMessageWaitTimeSeconds: 0 (short polling)
   # - Tags: Name, Environment, Type (processing), ManagedBy
-  
+
   # AWS::SQS::Queue (notification-queue)
   # - QueueName: !Sub '${EnvironmentName}-notification-queue'
   # - VisibilityTimeoutSeconds: 300
   # - MessageRetentionPeriod: 345600 (4 days)
   # - ReceiveMessageWaitTimeSeconds: 0 (short polling)
   # - Tags: Name, Environment, Type (notification), ManagedBy
-  
+
   # AWS::SQS::Queue (data-ingestion-queue)
   # - QueueName: !Sub '${EnvironmentName}-data-ingestion-queue'
   # - VisibilityTimeoutSeconds: 300
   # - MessageRetentionPeriod: 345600 (4 days)
   # - ReceiveMessageWaitTimeSeconds: 0 (short polling)
   # - Tags: Name, Environment, Type (data-ingestion), ManagedBy
-  
+
   # TODO: Dead Letter Queues (optional, for future use)
   # AWS::SQS::Queue (processing-dlq)
   # - QueueName: !Sub '${EnvironmentName}-processing-dlq'
   # - MessageRetentionPeriod: 1209600 (14 days)
   # - Tags: Name, Environment, Type (dlq), ManagedBy
-  
+
   # TODO: Lambda Execution Roles (no functions yet)
   # AWS::IAM::Role (lambda-execution-role)
   # - RoleName: !Sub '${EnvironmentName}-lambda-execution-role'
@@ -46,7 +46,7 @@ Resources:
   #   - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   # - Policies: Custom policies for SQS access, S3 access, etc.
   # - Tags: Name, Environment, Type (lambda-role), ManagedBy
-  
+
   # AWS::IAM::Role (lambda-processing-role)
   # - RoleName: !Sub '${EnvironmentName}-lambda-processing-role'
   # - AssumeRolePolicyDocument: Allow Lambda service to assume role
@@ -61,37 +61,37 @@ Outputs:
     Value: !Ref ProcessingQueue
     Export:
       Name: !Sub '${EnvironmentName}-ProcessingQueueUrl'
-  
+
   ProcessingQueueArn:
     Description: ARN of the processing queue
     Value: !GetAtt ProcessingQueue.Arn
     Export:
       Name: !Sub '${EnvironmentName}-ProcessingQueueArn'
-  
+
   NotificationQueueUrl:
     Description: URL of the notification queue
     Value: !Ref NotificationQueue
     Export:
       Name: !Sub '${EnvironmentName}-NotificationQueueUrl'
-  
+
   NotificationQueueArn:
     Description: ARN of the notification queue
     Value: !GetAtt NotificationQueue.Arn
     Export:
       Name: !Sub '${EnvironmentName}-NotificationQueueArn'
-  
+
   DataIngestionQueueUrl:
     Description: URL of the data ingestion queue
     Value: !Ref DataIngestionQueue
     Export:
       Name: !Sub '${EnvironmentName}-DataIngestionQueueUrl'
-  
+
   DataIngestionQueueArn:
     Description: ARN of the data ingestion queue
     Value: !GetAtt DataIngestionQueue.Arn
     Export:
       Name: !Sub '${EnvironmentName}-DataIngestionQueueArn'
-  
+
   LambdaExecutionRoleArn:
     Description: ARN of the Lambda execution role
     Value: !GetAtt LambdaExecutionRole.Arn

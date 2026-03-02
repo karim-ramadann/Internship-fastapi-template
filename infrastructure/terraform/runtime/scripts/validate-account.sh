@@ -3,7 +3,7 @@
 # AWS Account Validation Script
 # ============================================================================
 # This script validates that the current AWS credentials are for the expected
-# account before running Terraform commands. This prevents accidental 
+# account before running Terraform commands. This prevents accidental
 # deployments to the wrong AWS account.
 #
 # Usage:

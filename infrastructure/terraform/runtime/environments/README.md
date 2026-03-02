@@ -215,10 +215,10 @@ To add a new environment (e.g., `qa`):
    ```makefile
    init-qa:
        cd runtime && terraform init -backend-config=environments/qa/backend.hcl
-   
+
    plan-qa:
        cd runtime && terraform plan -var-file=environments/qa/terraform.tfvars
-   
+
    apply-qa:
        cd runtime && terraform apply -var-file=environments/qa/terraform.tfvars
    ```

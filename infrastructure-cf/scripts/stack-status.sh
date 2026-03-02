@@ -24,11 +24,11 @@ echo "=========================================="
 
 # TODO: Get and display stack status
 # STACK_INFO=$(aws cloudformation describe-stacks --stack-name "${FULL_STACK_NAME}")
-# 
+#
 # echo "Status: $(echo "$STACK_INFO" | jq -r '.Stacks[0].StackStatus')"
 # echo "Created: $(echo "$STACK_INFO" | jq -r '.Stacks[0].CreationTime')"
 # echo "Last Updated: $(echo "$STACK_INFO" | jq -r '.Stacks[0].LastUpdatedTime // "Never"')"
-# 
+#
 # if [ "${SHOW_OUTPUTS}" = "--outputs" ]; then
 #   echo ""
 #   echo "Outputs:"

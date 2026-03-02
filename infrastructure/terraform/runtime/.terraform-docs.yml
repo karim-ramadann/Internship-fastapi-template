@@ -15,11 +15,11 @@ sections:
 
 content: |-
   {{ .Header }}
-  
+
   ## Infrastructure Overview
-  
+
   This runtime infrastructure configuration deploys a complete AWS environment with:
-  
+
   - **Networking**: VPC with public/private/database subnets across 2 AZs
   - **Compute**: ECS Fargate cluster with auto-scaling
   - **Load Balancing**: Application Load Balancer with health checks
@@ -27,26 +27,26 @@ content: |-
   - **Container Registry**: ECR for Docker images
   - **Security**: Security groups, IAM roles, secrets management
   - **Monitoring**: CloudWatch logs for all services
-  
+
   ## Environment Configuration
-  
+
   Each environment (dev, staging, production) has its own:
   - Terraform state file in S3
   - Variable configuration in `environments/{env}/terraform.tfvars`
   - Independent deployment lifecycle
-  
+
   See [NAMING.md](NAMING.md) for resource naming conventions.
-  
+
   {{ .Requirements }}
-  
+
   {{ .Providers }}
-  
+
   {{ .Modules }}
-  
+
   {{ .Resources }}
-  
+
   {{ .Inputs }}
-  
+
   {{ .Outputs }}
 
 output:

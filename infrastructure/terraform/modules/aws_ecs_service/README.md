@@ -27,9 +27,9 @@ This wrapper module provides organization-wide standards:
 ```hcl
 module "example" {
   source = "./modules/MODULE_NAME"
-  
+
   context = local.context
-  
+
   # Module-specific variables
 }
 ```
