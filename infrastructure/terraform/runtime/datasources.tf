@@ -16,14 +16,14 @@ resource "null_resource" "account_validation" {
       )
       error_message = <<-EOT
         ❌ DEPLOYMENT BLOCKED: AWS Account Mismatch!
-        
+
         Environment:       ${var.environment}
         Current Account:   ${data.aws_caller_identity.current.account_id}
         Expected Account:  ${lookup(local.account_ids, var.environment, "not configured")}
-        
+
         You are attempting to deploy the '${var.environment}' environment to the wrong AWS account.
         Please check your AWS credentials and ensure you're authenticated to the correct account.
-        
+
         Account IDs are defined in locals.tf
       EOT
     }

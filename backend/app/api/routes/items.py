@@ -22,7 +22,7 @@ def read_items(
         count_statement = select(func.count()).select_from(Item)
         count = session.exec(count_statement).one()
         statement = (
-            select(Item).order_by(Item.created_at.desc()).offset(skip).limit(limit)
+            select(Item).order_by(Item.created_at.desc()).offset(skip).limit(limit)  # type: ignore[union-attr]
         )
         items = session.exec(statement).all()
     else:
@@ -35,7 +35,7 @@ def read_items(
         statement = (
             select(Item)
             .where(Item.owner_id == current_user.id)
-            .order_by(Item.created_at.desc())
+            .order_by(Item.created_at.desc())  # type: ignore[union-attr]
             .offset(skip)
             .limit(limit)
         )

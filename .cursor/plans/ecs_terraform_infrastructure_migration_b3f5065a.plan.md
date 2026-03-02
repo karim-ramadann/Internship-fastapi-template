@@ -89,14 +89,14 @@ graph TB
     subgraph Internet
         User[Users]
     end
-    
+
     subgraph AWS_Cloud [AWS Cloud]
         subgraph VPC [VPC]
             subgraph PublicSubnets [Public Subnets AZ1+AZ2]
                 ALB[Application Load Balancer<br/>HTTPS 443]
                 NAT[NAT Gateway]
             end
-            
+
             subgraph PrivateSubnets [Private Subnets AZ1+AZ2]
                 subgraph ECS_Cluster [ECS Cluster EC2]
                     Task[ECS Task<br/>Backend + Frontend + Adminer + Prestart]
@@ -104,13 +104,13 @@ graph TB
                 RDS[(RDS PostgreSQL<br/>Multi-AZ)]
             end
         end
-        
+
         ECR[ECR Repositories<br/>Backend + Frontend]
         SSM[SSM Parameter Store<br/>Secrets + Configs]
         CloudWatch[CloudWatch Logs]
         ServiceDiscovery[Cloud Map<br/>Service Discovery]
     end
-    
+
     User -->|HTTPS| ALB
     ALB -->|api.domain.com| Task
     ALB -->|dashboard.domain.com| Task
@@ -564,7 +564,7 @@ locals {
       }
     )
   }
-  
+
   # Naming convention
   name_prefix = "${var.project}-${var.environment}"
 }
@@ -835,7 +835,7 @@ sequenceDiagram
     participant ECR as ECR
     participant TF as Terraform
     participant ECS as ECS
-    
+
     GHA->>GHA: Build backend & frontend
     GHA->>ECR: Push images with env-sha tags
     GHA->>TF: terraform apply -var="backend_image_tag=staging-abc1234"
@@ -894,7 +894,7 @@ jobs:
       ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
       IMAGE_TAG: staging-${{ github.sha }}
       SHORT_SHA: ${{ github.sha }}
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -960,12 +960,12 @@ jobs:
             --services full-stack-fastapi-project-staging-service \
             --query 'services[0].runningCount' \
             --output text)
-          
+
           if [ "$SERVICE_STATUS" -lt "1" ]; then
             echo "Service is not running properly"
             exit 1
           fi
-          
+
           echo "Deployment successful. Service running $SERVICE_STATUS tasks with image tag staging-${{ steps.vars.outputs.short_sha }}"
 ```
 
@@ -1004,10 +1004,10 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
       IMAGE_TAG: production-${{ github.sha }}
-    
+
     steps:
       # ... same as staging but with production config ...
-      
+
       - name: Get short SHA
         id: vars
         run: echo "short_sha=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT

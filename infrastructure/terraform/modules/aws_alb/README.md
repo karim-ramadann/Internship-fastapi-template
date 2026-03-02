@@ -4,7 +4,7 @@ Thin wrapper around [terraform-aws-modules/alb/aws](https://registry.terraform.i
 
 ## Features
 
-- HTTP and HTTPS listener configuration  
+- HTTP and HTTPS listener configuration
 - Target group management with health checks
 - Access logging to S3 (optional)
 - WAF integration (optional)

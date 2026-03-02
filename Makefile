@@ -23,3 +23,6 @@ push-backend:
 
 # Build and push in one step (for CI)
 build-push-backend: build-backend push-backend
+
+prek-run-all:
+	uv run prek run --all-files

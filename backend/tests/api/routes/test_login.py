@@ -6,8 +6,8 @@ from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
-from app.crud import create_user
 from app.models import User, UserCreate
+from app.services import user
 from app.utils import generate_password_reset_token
 from tests.utils.user import user_authentication_headers
 from tests.utils.utils import random_email, random_lower_string
@@ -91,7 +91,7 @@ def test_reset_password(client: TestClient, db: Session) -> None:
         is_active=True,
         is_superuser=False,
     )
-    user = create_user(session=db, user_create=user_create)
+    db_user = user.create_user(session=db, user_create=user_create)
     token = generate_password_reset_token(email=email)
     headers = user_authentication_headers(client=client, email=email, password=password)
     data = {"new_password": new_password, "token": token}
@@ -105,8 +105,8 @@ def test_reset_password(client: TestClient, db: Session) -> None:
     assert r.status_code == 200
     assert r.json() == {"message": "Password updated successfully"}
 
-    db.refresh(user)
-    verified, _ = verify_password(new_password, user.hashed_password)
+    db.refresh(db_user)
+    verified, _ = verify_password(new_password, db_user.hashed_password)
     assert verified
 
 

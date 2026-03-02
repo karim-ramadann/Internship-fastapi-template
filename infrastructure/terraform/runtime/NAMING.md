@@ -242,7 +242,7 @@ When creating new resources, ask:
 
 1. **Is this a hierarchical resource?** (path-like structure)
    - Yes → Use `env/project/service` format
-   
+
 2. **Is this a flat resource?** (single name)
    - Yes → Use `project-resource-name-env` format
 

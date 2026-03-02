@@ -4,14 +4,14 @@
  * Thin wrapper around [terraform-aws-modules/vpc/aws](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest).
  *
  * ## Simple Default Architecture
- * 
+ *
  * By default, creates a simple 2-tier VPC with:
  * - 2 public subnets (10.0.1.0/24, 10.0.2.0/24)
  * - 2 private subnets (10.0.10.0/24, 10.0.11.0/24)
  * - Single NAT Gateway (cost-effective for dev/staging)
  * - Internet Gateway for public subnets
  * - DNS hostnames and support enabled
- * 
+ *
  * Available when needed:
  * - Additional subnet tiers (database, elasticache, redshift, intra)
  * - VPC Flow Logs for network monitoring and security

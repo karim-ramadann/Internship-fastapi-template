@@ -31,7 +31,7 @@ if [ "${FORCE}" != "--force" ]; then
   echo "WARNING: This will destroy stack: ${FULL_STACK_NAME}"
   echo "This action cannot be undone!"
   read -p "Are you sure you want to continue? (yes/no): " CONFIRM
-  
+
   if [ "${CONFIRM}" != "yes" ]; then
     echo "Destruction cancelled"
     exit 0

@@ -15,11 +15,11 @@ sections:
 
 content: |-
   {{ .Header }}
-  
+
   ## Architecture
-  
+
   This Terraform configuration deploys a complete full-stack application infrastructure on AWS with:
-  
+
   - **Networking**: VPC with public/private subnets across multiple AZs
   - **Compute**: ECS on EC2 with auto-scaling
   - **Load Balancing**: Application Load Balancer with HTTPS
@@ -28,17 +28,17 @@ content: |-
   - **DNS**: Route53 with automatic certificate validation
   - **Monitoring**: CloudWatch logs and optional alarms
   - **Security**: Security groups, IAM roles, encrypted storage
-  
+
   {{ .Requirements }}
-  
+
   {{ .Providers }}
-  
+
   {{ .Modules }}
-  
+
   {{ .Resources }}
-  
+
   {{ .Inputs }}
-  
+
   {{ .Outputs }}
 
 output:
