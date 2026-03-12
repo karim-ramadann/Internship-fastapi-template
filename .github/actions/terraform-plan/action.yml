@@ -6,7 +6,10 @@ inputs:
     description: "AWS environment to plan against (dev, staging, production)"
     required: true
   image_tag:
-    description: "Backend Docker image tag to deploy (e.g. production-abc1234)"
+    description: "Backend Docker image tag to deploy (e.g. dev-abc1234)"
+    required: true
+  terraform_version:
+    description: "Terraform version to use"
     required: true
 
 runs:
@@ -26,12 +29,14 @@ runs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: 1.14.4
+        terraform_version: ${{ inputs.terraform_version }}
 
     - name: Terraform Init
       shell: bash
       working-directory: ${{ env.TF_WORKING_DIR }}
-      run: terraform init -backend-config="environments/${{ inputs.environment }}/backend.hcl"
+      env:
+        TF_ENVIRONMENT: ${{ inputs.environment }}
+      run: terraform init -backend-config="environments/$TF_ENVIRONMENT/backend.hcl"
 
     - name: Terraform Validate
       shell: bash
@@ -41,10 +46,13 @@ runs:
     - name: Terraform Plan
       shell: bash
       working-directory: ${{ env.TF_WORKING_DIR }}
+      env:
+        TF_ENVIRONMENT: ${{ inputs.environment }}
+        IMAGE_TAG: ${{ inputs.image_tag }}
       run: |
         terraform plan \
-          -var-file="environments/${{ inputs.environment }}/terraform.tfvars" \
-          -var="backend_image_tag=${{ inputs.image_tag }}" \
+          -var-file="environments/$TF_ENVIRONMENT/terraform.tfvars" \
+          -var="backend_image_tag=$IMAGE_TAG" \
           -out=tfplan
 
     - name: Upload Plan Artifact
