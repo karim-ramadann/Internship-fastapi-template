@@ -1,6 +1,13 @@
 from sqlmodel import SQLModel
 
 from app.models.base import get_datetime_utc
+from app.models.chunk import (
+    Chunk,
+    ChunkBase,
+    ChunkCreate,
+    ChunkPublic,
+    ChunksPublic,
+)
 from app.models.item import (
     Item,
     ItemBase,
@@ -23,6 +30,11 @@ from app.models.user import (
 )
 
 __all__ = [
+    "Chunk",
+    "ChunkBase",
+    "ChunkCreate",
+    "ChunkPublic",
+    "ChunksPublic",
     "Item",
     "ItemBase",
     "ItemCreate",
