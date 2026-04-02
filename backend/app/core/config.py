@@ -95,6 +95,46 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
+    # =========================================================================
+    # RAG Configuration
+    # =========================================================================
+
+    # AWS Bedrock
+    AWS_REGION: str = (
+        "eu-central-1"  # Frankfurt - has all models including Cohere Rerank
+    )
+    BEDROCK_EMBEDDING_MODEL: str = "amazon.titan-embed-text-v2:0"
+    BEDROCK_LLM_MODEL: str = "anthropic.claude-3-haiku-20240307-v1:0"
+    EMBEDDING_DIMENSIONS: int = 1024
+
+    # AWS S3
+    S3_BUCKET: str = "loungelizard-scraped-data"
+
+    # Scraper settings
+    SCRAPER_BASE_URL: str = "https://www.loungelizard.com"
+    SCRAPER_SITEMAP_PATH: str = "/sitemap_index.xml"
+    SCRAPER_PAGE_LOAD_DELAY: int = 2
+    SCRAPER_CHROME_VERSION: int = 145
+
+    # Chunking settings
+    CHUNK_SIZE: int = 1000  # Target chunk size in characters
+    CHUNK_OVERLAP: int = 200  # Overlap between consecutive chunks
+
+    # RAG retrieval settings
+    RETRIEVAL_TOP_K: int = 5  # Number of chunks to retrieve
+    SIMILARITY_THRESHOLD: float = 0.7  # Minimum similarity score
+
+    # Re-ranking settings
+    USE_RERANKING: bool = True  # Enable/disable re-ranking
+    RERANK_TOP_K: int = 20  # Retrieve this many chunks before re-ranking
+    RERANK_FINAL_K: int = 5  # Return this many after re-ranking
+
+    @computed_field
+    @property
+    def scraper_sitemap_url(self) -> str:
+        """Full sitemap URL."""
+        return f"{self.SCRAPER_BASE_URL}{self.SCRAPER_SITEMAP_PATH}"
+
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
             message = (
