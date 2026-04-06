@@ -17,6 +17,15 @@ from app.models.item import (
     ItemUpdate,
 )
 from app.models.schemas import Message, NewPassword, Token, TokenPayload
+from app.models.scraped_page import (
+    ChunkData,
+    ChunkedData,
+    CleanedData,
+    CleanedPage,
+    ContentBlock,
+    PageData,
+    ScrapedData,
+)
 from app.models.user import (
     UpdatePassword,
     User,
@@ -33,8 +42,13 @@ __all__ = [
     "Chunk",
     "ChunkBase",
     "ChunkCreate",
+    "ChunkData",
+    "ChunkedData",
     "ChunkPublic",
     "ChunksPublic",
+    "CleanedData",
+    "CleanedPage",
+    "ContentBlock",
     "Item",
     "ItemBase",
     "ItemCreate",
@@ -43,6 +57,8 @@ __all__ = [
     "ItemUpdate",
     "Message",
     "NewPassword",
+    "PageData",
+    "ScrapedData",
     "Token",
     "TokenPayload",
     "SQLModel",
