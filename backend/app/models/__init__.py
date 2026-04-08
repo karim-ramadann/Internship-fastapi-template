@@ -16,6 +16,11 @@ from app.models.item import (
     ItemsPublic,
     ItemUpdate,
 )
+from app.models.rag import (
+    QueryRequest,
+    QueryResult,
+    RetrievedChunk,
+)
 from app.models.schemas import Message, NewPassword, Token, TokenPayload
 from app.models.scraped_page import (
     ChunkData,
@@ -58,6 +63,9 @@ __all__ = [
     "Message",
     "NewPassword",
     "PageData",
+    "QueryRequest",
+    "QueryResult",
+    "RetrievedChunk",
     "ScrapedData",
     "Token",
     "TokenPayload",
