@@ -73,6 +73,9 @@ keep-runtime-typing = true
 [tool.coverage.run]
 source = ["app"]
 dynamic_context = "test_function"
+omit = [
+    "app/services/scraper.py",  # Browser-based scraper, tested manually
+]
 
 [tool.coverage.report]
 show_missing = true
