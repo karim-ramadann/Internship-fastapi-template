@@ -114,7 +114,22 @@ class Settings(BaseSettings):
     SCRAPER_BASE_URL: str = "https://www.loungelizard.com"
     SCRAPER_SITEMAP_PATH: str = "/sitemap_index.xml"
     SCRAPER_PAGE_LOAD_DELAY: int = 2
+    SCRAPER_SITEMAP_LOAD_DELAY: int = 8
+    SCRAPER_SUB_SITEMAP_LOAD_DELAY: int = 4
     SCRAPER_CHROME_VERSION: int = 145
+    SCRAPER_MIN_PARAGRAPH_LENGTH: int = 20
+    SCRAPER_SAVE_INTERVAL: int = 50
+    SCRAPER_NOISE_PATTERNS: list[str] = [
+        "click here",
+        "read more",
+        "learn more",
+        "download now",
+        "subscribe",
+        "sign up",
+        "contact us",
+        "get started",
+        "request a quote",
+    ]
 
     # Chunking settings
     CHUNK_SIZE: int = 1000  # Target chunk size in characters

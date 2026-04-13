@@ -20,6 +20,9 @@ dependencies = [
     "pyjwt<3.0.0,>=2.8.0",
     "pwdlib[argon2,bcrypt]>=0.3.0",
     "pgvector>=0.3.0",
+    "undetected-chromedriver>=3.5.0",
+    "selenium>=4.0.0",
+    "setuptools>=70.0.0",
 ]
 
 [dependency-groups]
@@ -29,6 +32,7 @@ dev = [
     "ruff<1.0.0,>=0.2.2",
     "prek>=0.2.24,<1.0.0",
     "coverage<8.0.0,>=7.4.3",
+    "pytest-timeout>=2.4.0",
 ]
 
 [build-system]
@@ -69,6 +73,9 @@ keep-runtime-typing = true
 [tool.coverage.run]
 source = ["app"]
 dynamic_context = "test_function"
+omit = [
+    "app/services/scraper.py",  # Browser-based scraper, tested manually
+]
 
 [tool.coverage.report]
 show_missing = true
