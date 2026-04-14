@@ -19,7 +19,9 @@ class TestRecursiveTextSplitter:
 
     def test_splits_on_double_newline(self) -> None:
         splitter = RecursiveTextSplitter(chunk_size=50, chunk_overlap=10)
-        text = "First paragraph here.\n\nSecond paragraph here.\n\nThird paragraph here."
+        text = (
+            "First paragraph here.\n\nSecond paragraph here.\n\nThird paragraph here."
+        )
         result = splitter.split_text(text)
         assert len(result) >= 2
         assert "First paragraph" in result[0]

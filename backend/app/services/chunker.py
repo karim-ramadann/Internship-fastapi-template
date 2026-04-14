@@ -69,9 +69,7 @@ class RecursiveTextSplitter:
                     chunks.append(current_chunk)
 
                 if len(split) > self.chunk_size and len(remaining_separators) > 1:
-                    sub_chunks = self._split_recursive(
-                        split, remaining_separators[1:]
-                    )
+                    sub_chunks = self._split_recursive(split, remaining_separators[1:])
                     if sub_chunks:
                         chunks.extend(sub_chunks[:-1])
                         current_chunk = sub_chunks[-1]
