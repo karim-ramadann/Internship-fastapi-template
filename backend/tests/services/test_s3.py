@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from botocore.exceptions import ClientError
 
-from app.services.s3 import S3Service
+from app.services.bedrock.s3 import S3Service
 
 
 class TestS3Service:
@@ -112,7 +112,7 @@ class TestS3Service:
 
     def test_lazy_client_creation(self) -> None:
         """Test that boto3 client is created lazily."""
-        with patch("app.services.s3.boto3") as mock_boto3:
+        with patch("app.services.bedrock.s3.boto3") as mock_boto3:
             service = S3Service(bucket="test-bucket", region="us-east-1")
             assert service._client is None
 
