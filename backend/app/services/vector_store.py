@@ -6,10 +6,9 @@ Handles storage and similarity search of embeddings via SQLModel ORM.
 
 from typing import Any
 
-from sqlalchemy import delete as sa_delete
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
-from sqlmodel import Session, col, select
+from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.models import Chunk, ChunkCreate
@@ -212,11 +211,13 @@ def get_chunks_by_url(*, session: Session, url: str) -> list[Chunk]:
 
 
 def delete_chunks_by_url(*, session: Session, url: str) -> int:
-    """Delete all chunks for a given URL in a single DB operation."""
-    statement = sa_delete(Chunk).where(col(Chunk.url) == url)
-    result = session.execute(statement)
+    """Delete all chunks for a given URL."""
+    chunks = get_chunks_by_url(session=session, url=url)
+    count = len(chunks)
+    for chunk in chunks:
+        session.delete(chunk)
     session.commit()
-    return result.rowcount  # type: ignore[return-value]
+    return count
 
 
 def get_chunk_count(*, session: Session) -> int:
@@ -230,3 +231,22 @@ def get_unique_urls(*, session: Session) -> list[str]:
     """Get all unique URLs that have chunks stored."""
     statement = select(Chunk.url).distinct()
     return list(session.exec(statement).all())
+
+
+def verify_indexes(*, session: Session) -> dict[str, bool]:
+    """Verify that required pgvector and GIN indexes exist.
+
+    Returns a dict mapping index name to whether it exists.
+    Useful for health checks and startup validation.
+    """
+    from sqlalchemy import text
+
+    required_indexes = ["chunk_embedding_idx", "chunk_search_vector_idx"]
+    result = session.execute(
+        text(
+            "SELECT indexname FROM pg_indexes WHERE tablename = 'chunk'"
+        )
+    )
+    existing = {row[0] for row in result.fetchall()}
+
+    return {idx: idx in existing for idx in required_indexes}

@@ -224,12 +224,13 @@ class TestManagement:
 
     def test_delete_chunks_by_url(self) -> None:
         session = self._mock_session()
-        session.execute.return_value.rowcount = 3
+        mock_chunks = [MagicMock(), MagicMock(), MagicMock()]
+        session.exec.return_value.all.return_value = mock_chunks
 
         count = delete_chunks_by_url(session=session, url="https://example.com")
 
         assert count == 3
-        session.execute.assert_called_once()
+        assert session.delete.call_count == 3
         session.commit.assert_called_once()
 
     def test_get_chunk_count(self) -> None:
