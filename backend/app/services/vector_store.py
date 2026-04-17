@@ -166,9 +166,7 @@ def search_hybrid(
         top_k=candidate_k,
         threshold=0.0,
     )
-    keyword_results = search_keyword(
-        session=session, query=query, top_k=candidate_k
-    )
+    keyword_results = search_keyword(session=session, query=query, top_k=candidate_k)
 
     k = 60  # RRF constant
     scores: dict[str, float] = {}

@@ -106,9 +106,7 @@ class TestSearchSimilar:
         session = self._mock_session()
 
         with pytest.raises(ValueError, match="cannot be empty"):
-            search_similar(
-                session=session, query_embedding=[], top_k=5, threshold=0.7
-            )
+            search_similar(session=session, query_embedding=[], top_k=5, threshold=0.7)
 
 
 class TestSearchKeyword:
@@ -149,16 +147,33 @@ class TestSearchHybrid:
     def test_combines_results(self) -> None:
         session = self._mock_session()
         vector_results = [
-            {"id": "1", "content": "A", "url": "", "title": "", "chunk_index": 0, "similarity": 0.9},
+            {
+                "id": "1",
+                "content": "A",
+                "url": "",
+                "title": "",
+                "chunk_index": 0,
+                "similarity": 0.9,
+            },
         ]
         keyword_results = [
-            {"id": "2", "content": "B", "url": "", "title": "", "chunk_index": 0, "rank": 0.5},
+            {
+                "id": "2",
+                "content": "B",
+                "url": "",
+                "title": "",
+                "chunk_index": 0,
+                "rank": 0.5,
+            },
         ]
 
-        with patch(
-            "app.services.vector_store.search_similar", return_value=vector_results
-        ), patch(
-            "app.services.vector_store.search_keyword", return_value=keyword_results
+        with (
+            patch(
+                "app.services.vector_store.search_similar", return_value=vector_results
+            ),
+            patch(
+                "app.services.vector_store.search_keyword", return_value=keyword_results
+            ),
         ):
             results = search_hybrid(
                 session=session, query="test", query_embedding=[0.1] * 1024, top_k=5
@@ -171,13 +186,21 @@ class TestSearchHybrid:
     def test_no_mutation_of_source_docs(self) -> None:
         """Verify hybrid search doesn't mutate the original result dicts."""
         session = self._mock_session()
-        vector_doc = {"id": "1", "content": "A", "url": "", "title": "", "chunk_index": 0, "similarity": 0.9}
+        vector_doc = {
+            "id": "1",
+            "content": "A",
+            "url": "",
+            "title": "",
+            "chunk_index": 0,
+            "similarity": 0.9,
+        }
         original_keys = set(vector_doc.keys())
 
-        with patch(
-            "app.services.vector_store.search_similar", return_value=[vector_doc]
-        ), patch(
-            "app.services.vector_store.search_keyword", return_value=[]
+        with (
+            patch(
+                "app.services.vector_store.search_similar", return_value=[vector_doc]
+            ),
+            patch("app.services.vector_store.search_keyword", return_value=[]),
         ):
             search_hybrid(
                 session=session, query="test", query_embedding=[0.1] * 1024, top_k=5
