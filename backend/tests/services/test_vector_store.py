@@ -90,7 +90,7 @@ class TestSearchSimilar:
         mock_rows = [
             ("id-1", "Content A", "https://a.com", "Title A", 0, 0.95),
         ]
-        session.exec.return_value.fetchall.return_value = mock_rows
+        session.exec.return_value.all.return_value = mock_rows
 
         results = search_similar(
             session=session,
@@ -120,7 +120,7 @@ class TestSearchKeyword:
         mock_rows = [
             ("id-1", "Content A", "https://a.com", "Title A", 0, 0.5),
         ]
-        session.exec.return_value.fetchall.return_value = mock_rows
+        session.exec.return_value.all.return_value = mock_rows
 
         results = search_keyword(session=session, query="test query", top_k=5)
 

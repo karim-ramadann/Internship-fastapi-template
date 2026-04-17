@@ -19,24 +19,30 @@ def insert_chunks(*, session: Session, chunks: list[ChunkCreate]) -> list[Chunk]
     """Insert chunks with embeddings into the database.
 
     Validates that each chunk has a non-empty embedding with correct dimensions.
+    Uses rollback on failure to maintain data integrity.
     """
     if not chunks:
         return []
 
     db_chunks = []
-    for chunk_data in chunks:
-        if not chunk_data.embedding:
-            raise ValueError("Chunk embedding cannot be empty")
-        if len(chunk_data.embedding) != settings.EMBEDDING_DIMENSIONS:
-            raise ValueError(
-                f"Embedding dimension mismatch: expected {settings.EMBEDDING_DIMENSIONS}, "
-                f"got {len(chunk_data.embedding)}"
-            )
-        db_chunk = Chunk.model_validate(chunk_data)
-        session.add(db_chunk)
-        db_chunks.append(db_chunk)
+    try:
+        for chunk_data in chunks:
+            if not chunk_data.embedding:
+                raise ValueError("Chunk embedding cannot be empty")
+            if len(chunk_data.embedding) != settings.EMBEDDING_DIMENSIONS:
+                raise ValueError(
+                    f"Embedding dimension mismatch: expected {settings.EMBEDDING_DIMENSIONS}, "
+                    f"got {len(chunk_data.embedding)}"
+                )
+            db_chunk = Chunk.model_validate(chunk_data)
+            session.add(db_chunk)
+            db_chunks.append(db_chunk)
 
-    session.commit()
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
     for db_chunk in db_chunks:
         session.refresh(db_chunk)
     return db_chunks
@@ -78,7 +84,7 @@ def search_similar(
     )
 
     try:
-        results = session.exec(stmt).fetchall()
+        results = session.exec(stmt).all()
     except SQLAlchemyError as e:
         raise RuntimeError(f"Vector search failed: {e}") from e
 
@@ -125,7 +131,7 @@ def search_keyword(
     )
 
     try:
-        results = session.exec(stmt).fetchall()
+        results = session.exec(stmt).all()
     except SQLAlchemyError as e:
         raise RuntimeError(f"Keyword search failed: {e}") from e
 
@@ -175,12 +181,14 @@ def search_hybrid(
     for rank, doc in enumerate(vector_results):
         doc_id = doc["id"]
         scores[doc_id] = scores.get(doc_id, 0) + vector_weight / (k + rank + 1)
-        docs[doc_id] = doc
+        if doc_id not in docs:
+            docs[doc_id] = doc
 
     for rank, doc in enumerate(keyword_results):
         doc_id = doc["id"]
         scores[doc_id] = scores.get(doc_id, 0) + keyword_weight / (k + rank + 1)
-        docs[doc_id] = doc
+        if doc_id not in docs:
+            docs[doc_id] = doc
 
     sorted_ids = sorted(scores, key=lambda x: scores[x], reverse=True)
 
