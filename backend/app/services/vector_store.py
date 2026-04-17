@@ -243,9 +243,7 @@ def verify_indexes(*, session: Session) -> dict[str, bool]:
 
     required_indexes = ["chunk_embedding_idx", "chunk_search_vector_idx"]
     result = session.execute(
-        text(
-            "SELECT indexname FROM pg_indexes WHERE tablename = 'chunk'"
-        )
+        text("SELECT indexname FROM pg_indexes WHERE tablename = 'chunk'")
     )
     existing = {row[0] for row in result.fetchall()}
 
