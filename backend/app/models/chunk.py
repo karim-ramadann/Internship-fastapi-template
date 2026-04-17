@@ -1,8 +1,10 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Column, DateTime, Text
+from sqlalchemy import Column, DateTime, Index, Text
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlmodel import Field, SQLModel
 
 from app.core.config import settings
@@ -24,9 +26,28 @@ class ChunkCreate(ChunkBase):
 
 # Database model
 class Chunk(ChunkBase, table=True):
+    __table_args__ = (
+        Index(
+            "chunk_embedding_idx",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
+        Index(
+            "chunk_search_vector_idx",
+            "search_vector",
+            postgresql_using="gin",
+        ),
+    )
+
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     embedding: list[float] = Field(
         sa_column=Column(Vector(settings.EMBEDDING_DIMENSIONS), nullable=False)
+    )
+    # Precomputed tsvector for full-text search, auto-populated by DB trigger
+    search_vector: Any = Field(
+        default=None,
+        sa_column=Column(TSVECTOR, nullable=True),
     )
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
