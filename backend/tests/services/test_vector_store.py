@@ -2,194 +2,228 @@
 
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from app.models import ChunkCreate
-from app.services.vector_store import VectorStoreService
+from app.services.vector_store import (
+    delete_chunks_by_url,
+    get_chunk_count,
+    get_chunks_by_url,
+    get_unique_urls,
+    insert_chunks,
+    search_hybrid,
+    search_keyword,
+    search_similar,
+)
 
 
-class TestVectorStoreService:
-    """Tests for VectorStoreService."""
-
-    def _make_service(self) -> VectorStoreService:
-        return VectorStoreService()
+class TestInsertChunks:
+    """Tests for insert operations."""
 
     def _mock_session(self) -> MagicMock:
         return MagicMock()
 
     def test_insert_chunks(self) -> None:
-        """Test inserting chunks into the database."""
-        service = self._make_service()
         session = self._mock_session()
-
         chunks = [
             ChunkCreate(
                 content="Test content",
                 url="https://example.com",
                 title="Test",
                 chunk_index=0,
-                embedding=[0.1, 0.2, 0.3],
+                embedding=[0.1] * 1024,
             ),
         ]
 
-        result = service.insert_chunks(session, chunks)
+        result = insert_chunks(session=session, chunks=chunks)
 
         assert len(result) == 1
         assert result[0].content == "Test content"
-        assert session.add.call_count == 1
-        session.flush.assert_called_once()
+        session.add.assert_called_once()
+        session.commit.assert_called_once()
 
-    def test_insert_chunks_empty(self) -> None:
-        """Test inserting empty list returns empty."""
-        service = self._make_service()
+    def test_insert_empty_list(self) -> None:
         session = self._mock_session()
-
-        result = service.insert_chunks(session, [])
-
+        result = insert_chunks(session=session, chunks=[])
         assert result == []
-        session.flush.assert_called_once()
+        session.commit.assert_not_called()
 
-    def test_search_similar(self) -> None:
-        """Test vector similarity search."""
-        service = self._make_service()
+    def test_insert_rejects_empty_embedding(self) -> None:
         session = self._mock_session()
+        chunks = [
+            ChunkCreate(
+                content="Test",
+                url="https://example.com",
+                title="Test",
+                chunk_index=0,
+                embedding=[],
+            ),
+        ]
 
-        mock_row = {
-            "id": "abc-123",
-            "content": "Test content",
-            "url": "https://example.com",
-            "title": "Test",
-            "chunk_index": 0,
-            "similarity": 0.95,
-        }
-        mock_result = MagicMock()
-        mock_result.mappings.return_value.all.return_value = [mock_row]
-        session.execute.return_value = mock_result
+        with pytest.raises(ValueError, match="cannot be empty"):
+            insert_chunks(session=session, chunks=chunks)
 
-        results = service.search_similar(
-            session, [0.1, 0.2, 0.3], top_k=5, threshold=0.7
+    def test_insert_rejects_wrong_dimensions(self) -> None:
+        session = self._mock_session()
+        chunks = [
+            ChunkCreate(
+                content="Test",
+                url="https://example.com",
+                title="Test",
+                chunk_index=0,
+                embedding=[0.1, 0.2, 0.3],  # Wrong: should be 1024
+            ),
+        ]
+
+        with pytest.raises(ValueError, match="dimension mismatch"):
+            insert_chunks(session=session, chunks=chunks)
+
+
+class TestSearchSimilar:
+    """Tests for vector similarity search."""
+
+    def _mock_session(self) -> MagicMock:
+        return MagicMock()
+
+    def test_returns_results(self) -> None:
+        session = self._mock_session()
+        mock_rows = [
+            ("id-1", "Content A", "https://a.com", "Title A", 0, 0.95),
+        ]
+        session.exec.return_value.fetchall.return_value = mock_rows
+
+        results = search_similar(
+            session=session,
+            query_embedding=[0.1] * 1024,
+            top_k=5,
+            threshold=0.7,
         )
 
         assert len(results) == 1
         assert results[0]["similarity"] == 0.95
-        session.execute.assert_called_once()
 
-    def test_search_similar_filters_by_threshold(self) -> None:
-        """Test that results below threshold are filtered."""
-        service = self._make_service()
+    def test_rejects_empty_embedding(self) -> None:
         session = self._mock_session()
 
+        with pytest.raises(ValueError, match="cannot be empty"):
+            search_similar(
+                session=session, query_embedding=[], top_k=5, threshold=0.7
+            )
+
+
+class TestSearchKeyword:
+    """Tests for keyword search."""
+
+    def _mock_session(self) -> MagicMock:
+        return MagicMock()
+
+    def test_returns_results(self) -> None:
+        session = self._mock_session()
         mock_rows = [
-            {
-                "id": "1",
-                "content": "Good",
-                "url": "",
-                "title": "",
-                "chunk_index": 0,
-                "similarity": 0.9,
-            },
-            {
-                "id": "2",
-                "content": "Bad",
-                "url": "",
-                "title": "",
-                "chunk_index": 0,
-                "similarity": 0.3,
-            },
+            ("id-1", "Content A", "https://a.com", "Title A", 0, 0.5),
         ]
-        mock_result = MagicMock()
-        mock_result.mappings.return_value.all.return_value = mock_rows
-        session.execute.return_value = mock_result
+        session.exec.return_value.fetchall.return_value = mock_rows
 
-        results = service.search_similar(session, [0.1], top_k=5, threshold=0.7)
-
-        assert len(results) == 1
-        assert results[0]["content"] == "Good"
-
-    def test_search_keyword(self) -> None:
-        """Test keyword search."""
-        service = self._make_service()
-        session = self._mock_session()
-
-        mock_row = {
-            "id": "abc-123",
-            "content": "Test content",
-            "url": "https://example.com",
-            "title": "Test",
-            "chunk_index": 0,
-            "rank": 0.5,
-        }
-        mock_result = MagicMock()
-        mock_result.mappings.return_value.all.return_value = [mock_row]
-        session.execute.return_value = mock_result
-
-        results = service.search_keyword(session, "test query", top_k=5)
+        results = search_keyword(session=session, query="test query", top_k=5)
 
         assert len(results) == 1
         assert results[0]["rank"] == 0.5
 
-    def test_search_hybrid(self) -> None:
-        """Test hybrid search combines vector and keyword results."""
-        service = self._make_service()
+    def test_empty_query_returns_empty(self) -> None:
         session = self._mock_session()
+        results = search_keyword(session=session, query="", top_k=5)
+        assert results == []
 
-        # Mock both search methods
-        vector_result = [
-            {
-                "id": "1",
-                "content": "A",
-                "url": "",
-                "title": "",
-                "chunk_index": 0,
-                "similarity": 0.9,
-            },
+    def test_whitespace_query_returns_empty(self) -> None:
+        session = self._mock_session()
+        results = search_keyword(session=session, query="   ", top_k=5)
+        assert results == []
+
+
+class TestSearchHybrid:
+    """Tests for hybrid search."""
+
+    def _mock_session(self) -> MagicMock:
+        return MagicMock()
+
+    def test_combines_results(self) -> None:
+        session = self._mock_session()
+        vector_results = [
+            {"id": "1", "content": "A", "url": "", "title": "", "chunk_index": 0, "similarity": 0.9},
         ]
-        keyword_result = [
-            {
-                "id": "2",
-                "content": "B",
-                "url": "",
-                "title": "",
-                "chunk_index": 0,
-                "rank": 0.5,
-            },
+        keyword_results = [
+            {"id": "2", "content": "B", "url": "", "title": "", "chunk_index": 0, "rank": 0.5},
         ]
 
-        with (
-            patch.object(service, "search_similar", return_value=vector_result),
-            patch.object(service, "search_keyword", return_value=keyword_result),
+        with patch(
+            "app.services.vector_store.search_similar", return_value=vector_results
+        ), patch(
+            "app.services.vector_store.search_keyword", return_value=keyword_results
         ):
-            results = service.search_hybrid(session, "test", [0.1, 0.2], top_k=5)
+            results = search_hybrid(
+                session=session, query="test", query_embedding=[0.1] * 1024, top_k=5
+            )
 
         assert len(results) == 2
+        # Uses rrf_score, not similarity
+        assert "rrf_score" in results[0]
+        assert "similarity" not in results[0]
 
-    def test_delete_by_url(self) -> None:
-        """Test deleting chunks by URL."""
-        service = self._make_service()
+    def test_no_mutation_of_source_docs(self) -> None:
+        """Verify hybrid search doesn't mutate the original result dicts."""
         session = self._mock_session()
+        vector_doc = {"id": "1", "content": "A", "url": "", "title": "", "chunk_index": 0, "similarity": 0.9}
+        original_keys = set(vector_doc.keys())
 
-        mock_chunks = [MagicMock(), MagicMock()]
-        session.exec.return_value.all.return_value = mock_chunks
+        with patch(
+            "app.services.vector_store.search_similar", return_value=[vector_doc]
+        ), patch(
+            "app.services.vector_store.search_keyword", return_value=[]
+        ):
+            search_hybrid(
+                session=session, query="test", query_embedding=[0.1] * 1024, top_k=5
+            )
 
-        count = service.delete_by_url(session, "https://example.com")
+        # Original dict should not have rrf_score added
+        assert set(vector_doc.keys()) == original_keys
 
-        assert count == 2
-        assert session.delete.call_count == 2
-        session.flush.assert_called_once()
 
-    def test_get_stats(self) -> None:
-        """Test getting store statistics."""
-        service = self._make_service()
+class TestManagement:
+    """Tests for CRUD and utility operations."""
+
+    def _mock_session(self) -> MagicMock:
+        return MagicMock()
+
+    def test_get_chunks_by_url(self) -> None:
         session = self._mock_session()
+        session.exec.return_value.all.return_value = [MagicMock(), MagicMock()]
 
-        mock_row = {
-            "total_chunks": 100,
-            "unique_pages": 10,
-            "chunks_with_embeddings": 100,
-        }
-        mock_result = MagicMock()
-        mock_result.mappings.return_value.one.return_value = mock_row
-        session.execute.return_value = mock_result
+        result = get_chunks_by_url(session=session, url="https://example.com")
+        assert len(result) == 2
 
-        stats = service.get_stats(session)
+    def test_delete_chunks_by_url(self) -> None:
+        session = self._mock_session()
+        session.execute.return_value.rowcount = 3
 
-        assert stats["total_chunks"] == 100
-        assert stats["unique_pages"] == 10
+        count = delete_chunks_by_url(session=session, url="https://example.com")
+
+        assert count == 3
+        session.execute.assert_called_once()
+        session.commit.assert_called_once()
+
+    def test_get_chunk_count(self) -> None:
+        session = self._mock_session()
+        session.exec.return_value.one.return_value = 42
+
+        count = get_chunk_count(session=session)
+        assert count == 42
+
+    def test_get_unique_urls(self) -> None:
+        session = self._mock_session()
+        session.exec.return_value.all.return_value = [
+            "https://example.com/page1",
+            "https://example.com/page2",
+        ]
+
+        urls = get_unique_urls(session=session)
+        assert len(urls) == 2
