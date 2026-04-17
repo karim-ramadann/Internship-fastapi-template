@@ -51,8 +51,7 @@ def search_similar(
 ) -> list[dict[str, Any]]:
     """Search for similar chunks using cosine similarity via pgvector.
 
-    Threshold filtering is done in SQL via HAVING to avoid fetching
-    unnecessary rows.
+    Threshold filtering is done in SQL to avoid fetching unnecessary rows.
     """
     top_k = top_k or settings.RETRIEVAL_TOP_K
     threshold = threshold or settings.SIMILARITY_THRESHOLD

@@ -71,7 +71,7 @@ class TestInsertChunks:
                 url="https://example.com",
                 title="Test",
                 chunk_index=0,
-                embedding=[0.1, 0.2, 0.3],  # Wrong: should be 1024
+                embedding=[0.1, 0.2, 0.3],
             ),
         ]
 
@@ -165,7 +165,6 @@ class TestSearchHybrid:
             )
 
         assert len(results) == 2
-        # Uses rrf_score, not similarity
         assert "rrf_score" in results[0]
         assert "similarity" not in results[0]
 
@@ -184,7 +183,6 @@ class TestSearchHybrid:
                 session=session, query="test", query_embedding=[0.1] * 1024, top_k=5
             )
 
-        # Original dict should not have rrf_score added
         assert set(vector_doc.keys()) == original_keys
 
 
