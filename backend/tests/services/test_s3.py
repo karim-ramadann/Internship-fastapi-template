@@ -118,3 +118,35 @@ class TestS3Service:
 
             _ = service.client
             mock_boto3.client.assert_called_once_with("s3", region_name="us-east-1")
+
+    def test_upload_file_handles_api_error(self, tmp_path: Path) -> None:
+        """Test that S3 upload errors are wrapped in RuntimeError."""
+        service = self._make_service()
+        test_file = tmp_path / "data.json"
+        test_file.write_text("{}")
+        service.client.upload_file.side_effect = ClientError(
+            {"Error": {"Code": "500", "Message": "Internal"}}, "PutObject"
+        )
+
+        with pytest.raises(RuntimeError, match="S3 upload failed"):
+            service.upload_file(test_file)
+
+    def test_upload_json_handles_api_error(self) -> None:
+        """Test that S3 JSON upload errors are wrapped in RuntimeError."""
+        service = self._make_service()
+        service.client.put_object.side_effect = ClientError(
+            {"Error": {"Code": "500", "Message": "Internal"}}, "PutObject"
+        )
+
+        with pytest.raises(RuntimeError, match="S3 JSON upload failed"):
+            service.upload_json({"key": "value"}, "data.json")
+
+    def test_download_json_handles_api_error(self) -> None:
+        """Test that S3 download errors are wrapped in RuntimeError."""
+        service = self._make_service()
+        service.client.get_object.side_effect = ClientError(
+            {"Error": {"Code": "404", "Message": "Not Found"}}, "GetObject"
+        )
+
+        with pytest.raises(RuntimeError, match="S3 download failed"):
+            service.download_json("missing.json")
