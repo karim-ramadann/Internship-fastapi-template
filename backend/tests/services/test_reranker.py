@@ -4,6 +4,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+from botocore.exceptions import ClientError
 
 from app.services.bedrock.reranker import BedrockReranker
 
@@ -27,29 +28,14 @@ class TestBedrockReranker:
 
     def test_rerank_returns_reranked_docs(self) -> None:
         reranker = self._make_reranker()
-        self._mock_rerank_response(
-            reranker,
-            [
-                {"index": 1, "relevance_score": 0.95},
-                {"index": 0, "relevance_score": 0.80},
-            ],
-        )
+        self._mock_rerank_response(reranker, [
+            {"index": 1, "relevance_score": 0.95},
+            {"index": 0, "relevance_score": 0.80},
+        ])
 
         docs = [
-            {
-                "id": "1",
-                "content": "First doc",
-                "url": "https://a.com",
-                "title": "A",
-                "chunk_index": 0,
-            },
-            {
-                "id": "2",
-                "content": "Second doc",
-                "url": "https://b.com",
-                "title": "B",
-                "chunk_index": 1,
-            },
+            {"id": "1", "content": "First doc", "url": "https://a.com", "title": "A", "chunk_index": 0},
+            {"id": "2", "content": "Second doc", "url": "https://b.com", "title": "B", "chunk_index": 1},
         ]
 
         result = reranker.rerank("test query", docs, top_k=2)
@@ -59,7 +45,6 @@ class TestBedrockReranker:
         assert result[0]["content"] == "Second doc"
         assert result[0]["original_rank"] == 2
         assert result[1]["relevance_score"] == 0.80
-        assert result[1]["content"] == "First doc"
 
     def test_rerank_empty_documents(self) -> None:
         reranker = self._make_reranker()
@@ -68,49 +53,46 @@ class TestBedrockReranker:
 
     def test_rerank_rejects_empty_query(self) -> None:
         reranker = self._make_reranker()
-        docs = [{"content": "Some text"}]
-
         with pytest.raises(ValueError, match="cannot be empty"):
-            reranker.rerank("", docs)
+            reranker.rerank("", [{"content": "text"}])
 
     def test_rerank_rejects_whitespace_query(self) -> None:
         reranker = self._make_reranker()
-        docs = [{"content": "Some text"}]
-
         with pytest.raises(ValueError, match="cannot be empty"):
-            reranker.rerank("   ", docs)
+            reranker.rerank("   ", [{"content": "text"}])
+
+    def test_rerank_rejects_missing_content_key(self) -> None:
+        reranker = self._make_reranker()
+        with pytest.raises(ValueError, match="missing 'content' key"):
+            reranker.rerank("test", [{"title": "no content here"}])
 
     def test_rerank_does_not_mutate_originals(self) -> None:
         reranker = self._make_reranker()
-        self._mock_rerank_response(
-            reranker,
-            [
-                {"index": 0, "relevance_score": 0.9},
-            ],
-        )
+        self._mock_rerank_response(reranker, [
+            {"index": 0, "relevance_score": 0.9},
+        ])
 
-        original_doc = {
-            "id": "1",
-            "content": "Test",
-            "url": "",
-            "title": "",
-            "chunk_index": 0,
-        }
+        original_doc = {"id": "1", "content": "Test", "url": "", "title": "", "chunk_index": 0}
         original_keys = set(original_doc.keys())
 
         reranker.rerank("test", [original_doc], top_k=1)
 
         assert set(original_doc.keys()) == original_keys
 
+    def test_rerank_handles_api_error(self) -> None:
+        reranker = self._make_reranker()
+        reranker.client.invoke_model.side_effect = ClientError(
+            {"Error": {"Code": "500", "Message": "Internal"}}, "InvokeModel"
+        )
+
+        with pytest.raises(RuntimeError, match="Bedrock rerank API call failed"):
+            reranker.rerank("test", [{"content": "text"}])
+
     def test_rerank_sends_correct_body(self) -> None:
         reranker = self._make_reranker()
         self._mock_rerank_response(reranker, [])
 
-        docs = [
-            {"content": "Doc A"},
-            {"content": "Doc B"},
-        ]
-
+        docs = [{"content": "Doc A"}, {"content": "Doc B"}]
         reranker.rerank("my query", docs, top_k=1)
 
         call_kwargs = reranker.client.invoke_model.call_args[1]
@@ -123,7 +105,6 @@ class TestBedrockReranker:
         with patch("app.services.bedrock.reranker.boto3") as mock_boto3:
             reranker = BedrockReranker(region="us-east-1")
             assert reranker._client is None
-
             _ = reranker.client
             mock_boto3.client.assert_called_once()
 

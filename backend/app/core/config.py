@@ -143,6 +143,7 @@ class Settings(BaseSettings):
     USE_RERANKING: bool = True  # Enable/disable re-ranking
     RERANK_TOP_K: int = 20  # Retrieve this many chunks before re-ranking
     RERANK_FINAL_K: int = 5  # Return this many after re-ranking
+    RERANK_MODEL_ID: str = "cohere.rerank-v3-5:0"
 
     @computed_field
     @property

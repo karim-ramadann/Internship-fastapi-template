@@ -32,32 +32,58 @@ class S3Service:
         return self._client
 
     def upload_file(self, local_path: Path | str, s3_key: str | None = None) -> str:
-        """Upload a file to S3. Returns the S3 URI."""
+        """Upload a file to S3. Returns the S3 URI.
+
+        Raises:
+            FileNotFoundError: If local file doesn't exist.
+            RuntimeError: If S3 API call fails.
+        """
         path = Path(local_path)
         if not path.exists():
             raise FileNotFoundError(f"File not found: {local_path}")
 
         s3_key = s3_key or path.name
         self._ensure_bucket_exists()
-        self.client.upload_file(str(path), self.bucket, s3_key)
+
+        try:
+            self.client.upload_file(str(path), self.bucket, s3_key)
+        except ClientError as e:
+            raise RuntimeError(f"S3 upload failed: {e}") from e
 
         return f"s3://{self.bucket}/{s3_key}"
 
     def upload_json(self, data: dict, s3_key: str) -> str:
-        """Upload a JSON dict directly to S3. Returns the S3 URI."""
+        """Upload a JSON dict directly to S3. Returns the S3 URI.
+
+        Raises:
+            RuntimeError: If S3 API call fails.
+        """
         self._ensure_bucket_exists()
-        self.client.put_object(
-            Bucket=self.bucket,
-            Key=s3_key,
-            Body=json.dumps(data, ensure_ascii=False, default=str),
-            ContentType="application/json",
-        )
+
+        try:
+            self.client.put_object(
+                Bucket=self.bucket,
+                Key=s3_key,
+                Body=json.dumps(data, ensure_ascii=False, default=str),
+                ContentType="application/json",
+            )
+        except ClientError as e:
+            raise RuntimeError(f"S3 JSON upload failed: {e}") from e
+
         return f"s3://{self.bucket}/{s3_key}"
 
     def download_json(self, s3_key: str) -> dict:
-        """Download and parse a JSON object from S3."""
-        response = self.client.get_object(Bucket=self.bucket, Key=s3_key)
-        content = response["Body"].read().decode("utf-8")
+        """Download and parse a JSON object from S3.
+
+        Raises:
+            RuntimeError: If S3 API call fails.
+        """
+        try:
+            response = self.client.get_object(Bucket=self.bucket, Key=s3_key)
+            content = response["Body"].read().decode("utf-8")
+        except ClientError as e:
+            raise RuntimeError(f"S3 download failed: {e}") from e
+
         return json.loads(content)  # type: ignore[no-any-return]
 
     def _ensure_bucket_exists(self) -> None:

@@ -3,6 +3,9 @@
 import json
 from unittest.mock import MagicMock, patch
 
+import pytest
+from botocore.exceptions import ClientError
+
 from app.services.bedrock.embedder import BedrockEmbedder
 
 
@@ -97,3 +100,25 @@ class TestBedrockEmbedder:
         assert embedder.model_id == "amazon.titan-embed-text-v2:0"
         assert embedder.dimensions == 1024
         assert embedder.region == "eu-central-1"
+
+    def test_embed_text_rejects_empty(self) -> None:
+        """Test that empty text raises ValueError."""
+        embedder = self._make_embedder()
+        with pytest.raises(ValueError, match="cannot be empty"):
+            embedder.embed_text("")
+
+    def test_embed_text_rejects_whitespace(self) -> None:
+        """Test that whitespace-only text raises ValueError."""
+        embedder = self._make_embedder()
+        with pytest.raises(ValueError, match="cannot be empty"):
+            embedder.embed_text("   ")
+
+    def test_embed_text_handles_api_error(self) -> None:
+        """Test that Bedrock API errors are wrapped in RuntimeError."""
+        embedder = self._make_embedder()
+        embedder.client.invoke_model.side_effect = ClientError(
+            {"Error": {"Code": "500", "Message": "Internal"}}, "InvokeModel"
+        )
+
+        with pytest.raises(RuntimeError, match="Bedrock embedding API call failed"):
+            embedder.embed_text("test text")

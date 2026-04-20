@@ -9,6 +9,7 @@ from typing import Any
 
 import boto3
 from botocore.config import Config
+from botocore.exceptions import ClientError
 
 from app.core.config import settings
 
@@ -39,7 +40,15 @@ class BedrockEmbedder:
         return self._client
 
     def embed_text(self, text: str) -> list[float]:
-        """Generate embedding for a single text."""
+        """Generate embedding for a single text.
+
+        Raises:
+            ValueError: If text is empty.
+            RuntimeError: If Bedrock API call fails.
+        """
+        if not text or not text.strip():
+            raise ValueError("Text cannot be empty")
+
         body = json.dumps(
             {
                 "inputText": text,
@@ -48,14 +57,17 @@ class BedrockEmbedder:
             }
         )
 
-        response = self.client.invoke_model(
-            modelId=self.model_id,
-            body=body,
-            contentType="application/json",
-            accept="application/json",
-        )
+        try:
+            response = self.client.invoke_model(
+                modelId=self.model_id,
+                body=body,
+                contentType="application/json",
+                accept="application/json",
+            )
+            result = json.loads(response["body"].read())
+        except ClientError as e:
+            raise RuntimeError(f"Bedrock embedding API call failed: {e}") from e
 
-        result = json.loads(response["body"].read())
         return result["embedding"]  # type: ignore[no-any-return]
 
     def embed_batch(
