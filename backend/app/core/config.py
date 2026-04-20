@@ -145,6 +145,11 @@ class Settings(BaseSettings):
     RERANK_FINAL_K: int = 5  # Return this many after re-ranking
     RERANK_MODEL_ID: str = "cohere.rerank-v3-5:0"
 
+    # Guardrails settings
+    BEDROCK_GUARDRAIL_ID: str = "xykewo66ihla"
+    BEDROCK_GUARDRAIL_VERSION: str = "DRAFT"
+    USE_BEDROCK_GUARDRAILS: bool = True
+
     @computed_field
     @property
     def scraper_sitemap_url(self) -> str:
