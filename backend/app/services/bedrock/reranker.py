@@ -65,12 +65,14 @@ class BedrockReranker:
 
         texts = [doc["content"] for doc in documents]
 
-        body = json.dumps({
-            "query": query,
-            "documents": texts,
-            "top_n": min(top_k, len(documents)),
-            "api_version": 2,
-        })
+        body = json.dumps(
+            {
+                "query": query,
+                "documents": texts,
+                "top_n": min(top_k, len(documents)),
+                "api_version": 2,
+            }
+        )
 
         try:
             response = self.client.invoke_model(

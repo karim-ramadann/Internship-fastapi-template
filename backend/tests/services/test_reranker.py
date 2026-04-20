@@ -28,14 +28,29 @@ class TestBedrockReranker:
 
     def test_rerank_returns_reranked_docs(self) -> None:
         reranker = self._make_reranker()
-        self._mock_rerank_response(reranker, [
-            {"index": 1, "relevance_score": 0.95},
-            {"index": 0, "relevance_score": 0.80},
-        ])
+        self._mock_rerank_response(
+            reranker,
+            [
+                {"index": 1, "relevance_score": 0.95},
+                {"index": 0, "relevance_score": 0.80},
+            ],
+        )
 
         docs = [
-            {"id": "1", "content": "First doc", "url": "https://a.com", "title": "A", "chunk_index": 0},
-            {"id": "2", "content": "Second doc", "url": "https://b.com", "title": "B", "chunk_index": 1},
+            {
+                "id": "1",
+                "content": "First doc",
+                "url": "https://a.com",
+                "title": "A",
+                "chunk_index": 0,
+            },
+            {
+                "id": "2",
+                "content": "Second doc",
+                "url": "https://b.com",
+                "title": "B",
+                "chunk_index": 1,
+            },
         ]
 
         result = reranker.rerank("test query", docs, top_k=2)
@@ -68,11 +83,20 @@ class TestBedrockReranker:
 
     def test_rerank_does_not_mutate_originals(self) -> None:
         reranker = self._make_reranker()
-        self._mock_rerank_response(reranker, [
-            {"index": 0, "relevance_score": 0.9},
-        ])
+        self._mock_rerank_response(
+            reranker,
+            [
+                {"index": 0, "relevance_score": 0.9},
+            ],
+        )
 
-        original_doc = {"id": "1", "content": "Test", "url": "", "title": "", "chunk_index": 0}
+        original_doc = {
+            "id": "1",
+            "content": "Test",
+            "url": "",
+            "title": "",
+            "chunk_index": 0,
+        }
         original_keys = set(original_doc.keys())
 
         reranker.rerank("test", [original_doc], top_k=1)
