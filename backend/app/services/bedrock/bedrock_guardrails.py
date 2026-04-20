@@ -76,9 +76,7 @@ class BedrockGuardrailsService:
             raise RuntimeError(f"Bedrock Guardrails API call failed: {e}") from e
 
         action = response.get("action", "NONE")
-        outputs = [
-            o.get("text", "") for o in response.get("outputs", [])
-        ]
+        outputs = [o.get("text", "") for o in response.get("outputs", [])]
         assessments = response.get("assessments", [])
 
         return BedrockGuardrailResult(
@@ -132,9 +130,7 @@ class BedrockGuardrailsService:
             raise RuntimeError(f"Bedrock Guardrails API call failed: {e}") from e
 
         action = response.get("action", "NONE")
-        outputs = [
-            o.get("text", "") for o in response.get("outputs", [])
-        ]
+        outputs = [o.get("text", "") for o in response.get("outputs", [])]
         assessments = response.get("assessments", [])
 
         return BedrockGuardrailResult(
