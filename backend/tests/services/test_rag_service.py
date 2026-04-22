@@ -136,7 +136,7 @@ class TestRAGService:
         ]
         service.llm.invoke.return_value = ("Answer", 10)
 
-        result = service.query(session=session, question="test", mode="vector")
+        service.query(session=session, question="test", mode="vector")
 
         service.vector_store.search_similar.assert_called_once()
         service.reranker.rerank.assert_not_called()
