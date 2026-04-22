@@ -157,7 +157,7 @@ class TestRAGService:
         ]
         service.llm.invoke.return_value = ("Answer", 10)
 
-        result = service.query(session=session, question="test", mode="hybrid")
+        service.query(session=session, question="test", mode="hybrid")
 
         service.vector_store.search_hybrid.assert_called_once()
 
@@ -193,7 +193,7 @@ class TestRAGService:
         ]
         service.llm.invoke.return_value = ("Answer", 10)
 
-        result = service.query(session=session, question="test", mode="rerank")
+        service.query(session=session, question="test", mode="rerank")
 
         service.reranker.rerank.assert_called_once()
 
