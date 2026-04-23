@@ -4,6 +4,7 @@ Handles text generation for RAG responses.
 """
 
 import json
+import logging
 from typing import Any
 
 import boto3
@@ -11,6 +12,8 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class BedrockLLM:
@@ -44,17 +47,9 @@ class BedrockLLM:
     ) -> tuple[str, int]:
         """Invoke Claude model and return (response_text, tokens_used).
 
-        Args:
-            prompt: The user message.
-            system_prompt: Optional system instruction.
-            max_tokens: Maximum tokens in response.
-
-        Returns:
-            Tuple of (response_text, output_tokens_used).
-
         Raises:
             ValueError: If prompt is empty.
-            RuntimeError: If Bedrock API call fails.
+            RuntimeError: If Bedrock API call fails or response is malformed.
         """
         if not prompt or not prompt.strip():
             raise ValueError("Prompt cannot be empty")
@@ -79,9 +74,15 @@ class BedrockLLM:
             )
             result = json.loads(response["body"].read())
         except ClientError as e:
+            logger.exception("Bedrock LLM API call failed")
             raise RuntimeError(f"Bedrock LLM API call failed: {e}") from e
 
-        text = result["content"][0]["text"]
+        try:
+            text = result["content"][0]["text"]
+        except (KeyError, IndexError, TypeError) as e:
+            logger.error("Unexpected Bedrock response shape: %s", result)
+            raise RuntimeError(f"Unexpected Bedrock response format: {e}") from e
+
         tokens = result.get("usage", {}).get("output_tokens", 0)
 
         return text, tokens

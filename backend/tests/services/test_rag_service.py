@@ -2,6 +2,8 @@
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from app.models import QueryResult
 from app.services.local_guardrails import GuardrailResult, ValidationResult
 from app.services.rag_service import RAGService
@@ -216,3 +218,108 @@ class TestRAGService:
         result = service.query(session=session, question="test", mode="vector")
 
         assert result.latency > 0
+
+    def test_query_invalid_mode_raises(self) -> None:
+        service = self._make_service()
+        session = self._mock_session()
+
+        with pytest.raises(ValueError, match="Invalid retrieval mode"):
+            service.query(session=session, question="test", mode="invalid")
+
+    def test_query_output_guardrails_called(self) -> None:
+        service = self._make_service()
+        service.bedrock_guardrails = MagicMock()
+        session = self._mock_session()
+
+        # Input guardrails pass
+        bedrock_input = MagicMock()
+        bedrock_input.allowed = True
+        service.bedrock_guardrails.validate_input.return_value = bedrock_input
+
+        # Output guardrails pass
+        bedrock_output = MagicMock()
+        bedrock_output.allowed = True
+        service.bedrock_guardrails.validate_output.return_value = bedrock_output
+
+        service.embedder.embed_text.return_value = [0.1] * 1024
+        service.vector_store.search_similar.return_value = [
+            {
+                "content": "Test",
+                "url": "",
+                "title": "",
+                "chunk_index": 0,
+                "similarity": 0.9,
+            },
+        ]
+        service.llm.invoke.return_value = ("Answer", 10)
+
+        service.query(session=session, question="test", mode="vector")
+
+        service.bedrock_guardrails.validate_output.assert_called_once()
+
+    def test_query_output_guardrails_blocks_response(self) -> None:
+        service = self._make_service()
+        service.bedrock_guardrails = MagicMock()
+        session = self._mock_session()
+
+        bedrock_input = MagicMock()
+        bedrock_input.allowed = True
+        service.bedrock_guardrails.validate_input.return_value = bedrock_input
+
+        bedrock_output = MagicMock()
+        bedrock_output.allowed = False
+        bedrock_output.outputs = ["Unsafe response blocked."]
+        service.bedrock_guardrails.validate_output.return_value = bedrock_output
+
+        service.embedder.embed_text.return_value = [0.1] * 1024
+        service.vector_store.search_similar.return_value = [
+            {
+                "content": "Test",
+                "url": "",
+                "title": "",
+                "chunk_index": 0,
+                "similarity": 0.9,
+            },
+        ]
+        service.llm.invoke.return_value = ("Bad answer", 10)
+
+        result = service.query(session=session, question="test", mode="vector")
+
+        assert result.answer == "Unsafe response blocked."
+
+    def test_rerank_score_above_one_accepted(self) -> None:
+        """Cohere rerank scores can exceed 1.0."""
+        service = self._make_service()
+        session = self._mock_session()
+
+        service.embedder.embed_text.return_value = [0.1] * 1024
+        service.vector_store.search_similar.return_value = [
+            {
+                "content": "A",
+                "url": "",
+                "title": "",
+                "chunk_index": 0,
+                "similarity": 0.9,
+            },
+            {
+                "content": "B",
+                "url": "",
+                "title": "",
+                "chunk_index": 1,
+                "similarity": 0.8,
+            },
+        ]
+        service.reranker.rerank.return_value = [
+            {
+                "content": "A",
+                "url": "",
+                "title": "",
+                "chunk_index": 0,
+                "relevance_score": 1.5,
+            },
+        ]
+        service.llm.invoke.return_value = ("Answer", 10)
+
+        result = service.query(session=session, question="test", mode="rerank")
+
+        assert result.sources[0].similarity == 1.5

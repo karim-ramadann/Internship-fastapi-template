@@ -3,6 +3,7 @@ RAG (Retrieval-Augmented Generation) service.
 Orchestrates the full pipeline: guardrails → embed → search → rerank → LLM.
 """
 
+import logging
 import time
 from enum import Enum
 from typing import Any
@@ -17,6 +18,10 @@ from app.services.bedrock.llm import BedrockLLM
 from app.services.bedrock.reranker import BedrockReranker
 from app.services.local_guardrails import GuardrailResult, GuardrailsService
 from app.services.vector_store import VectorStoreService
+
+logger = logging.getLogger(__name__)
+
+VALID_MODES = {"vector", "hybrid", "rerank"}
 
 
 class RetrievalMode(Enum):
@@ -73,8 +78,6 @@ class RAGService:
     ) -> QueryResult:
         """Answer a question using the RAG pipeline.
 
-        Pipeline: guardrails → embed → search → (rerank) → LLM → response.
-
         Args:
             session: Database session for vector store queries.
             question: The user's question.
@@ -83,14 +86,25 @@ class RAGService:
 
         Returns:
             QueryResult with answer, sources, and metadata.
+
+        Raises:
+            ValueError: If mode is not one of vector, hybrid, rerank.
         """
         start_time = time.time()
-        retrieval_mode = RetrievalMode(mode)
         top_k = top_k or settings.RETRIEVAL_TOP_K
 
+        # Validate mode
+        if mode not in VALID_MODES:
+            raise ValueError(
+                f"Invalid retrieval mode '{mode}'. Must be one of: {VALID_MODES}"
+            )
+        retrieval_mode = RetrievalMode(mode)
+
         # Step 1: Local guardrails (free, instant)
+        logger.info("Running local guardrails for query: %s", question[:50])
         validation = self.local_guardrails.validate(question)
         if validation.status != GuardrailResult.ALLOWED:
+            logger.info("Query blocked by local guardrails: %s", validation.status)
             return QueryResult(
                 query=question,
                 answer=validation.message or "Query blocked.",
@@ -107,6 +121,7 @@ class RAGService:
             try:
                 bedrock_result = self.bedrock_guardrails.validate_input(question)
                 if not bedrock_result.allowed:
+                    logger.info("Query blocked by Bedrock guardrails")
                     message = (
                         bedrock_result.outputs[0]
                         if bedrock_result.outputs
@@ -121,12 +136,16 @@ class RAGService:
                         latency=time.time() - start_time,
                     )
             except RuntimeError:
-                pass  # Bedrock guardrails failed, continue with local only
+                logger.warning(
+                    "Bedrock guardrails unavailable, continuing with local only"
+                )
 
         # Step 3: Embed the question
+        logger.info("Embedding query")
         query_embedding = self.embedder.embed_text(question)
 
         # Step 4: Retrieve chunks based on mode
+        logger.info("Retrieving chunks with mode=%s", mode)
         raw_chunks = self._retrieve(
             session=session,
             question=question,
@@ -136,6 +155,7 @@ class RAGService:
         )
 
         if not raw_chunks:
+            logger.info("No chunks found for query")
             return QueryResult(
                 query=question,
                 answer="I couldn't find any relevant information to answer your question.",
@@ -157,9 +177,28 @@ class RAGService:
         ]
 
         # Step 6: Generate answer with LLM
+        logger.info("Generating answer with LLM")
         context = self._format_context(sources)
         prompt = self.USER_PROMPT_TEMPLATE.format(context=context, question=question)
         answer, tokens = self.llm.invoke(prompt, system_prompt=self.SYSTEM_PROMPT)
+
+        # Step 7: Validate LLM output with Bedrock guardrails
+        if self.bedrock_guardrails and settings.USE_BEDROCK_GUARDRAILS:
+            try:
+                output_result = self.bedrock_guardrails.validate_output(
+                    answer, grounding_source=context
+                )
+                if not output_result.allowed:
+                    logger.warning("LLM output blocked by Bedrock guardrails")
+                    answer = (
+                        output_result.outputs[0]
+                        if output_result.outputs
+                        else "I'm unable to provide a safe response for this query."
+                    )
+            except RuntimeError:
+                logger.warning(
+                    "Bedrock output guardrails unavailable, returning unvalidated response"
+                )
 
         return QueryResult(
             query=question,
@@ -204,7 +243,6 @@ class RAGService:
                 )
             return candidates
 
-        # Vector only (baseline)
         return self.vector_store.search_similar(
             session=session,
             query_embedding=query_embedding,

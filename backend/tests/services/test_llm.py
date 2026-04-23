@@ -83,3 +83,12 @@ class TestBedrockLLM:
         llm = BedrockLLM()
         assert llm.model_id == "anthropic.claude-3-haiku-20240307-v1:0"
         assert llm.region == "eu-central-1"
+
+    def test_invoke_handles_malformed_response(self) -> None:
+        llm = self._make_llm()
+        body_mock = MagicMock()
+        body_mock.read.return_value = json.dumps({"unexpected": "shape"}).encode()
+        llm.client.invoke_model.return_value = {"body": body_mock}
+
+        with pytest.raises(RuntimeError, match="Unexpected Bedrock response format"):
+            llm.invoke("test")
