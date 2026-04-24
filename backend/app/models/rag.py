@@ -9,7 +9,7 @@ class RetrievedChunk(SQLModel):
     url: str
     title: str
     chunk_index: int
-    similarity: float = Field(ge=0.0, le=1.0)
+    similarity: float = Field(ge=0.0)
 
 
 class QueryRequest(SQLModel):
