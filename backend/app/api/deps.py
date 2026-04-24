@@ -46,7 +46,7 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
         token_data = TokenPayload(**payload)
     except (InvalidTokenError, ValidationError):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
     user = session.get(User, token_data.sub)
@@ -68,72 +68,83 @@ def get_current_active_superuser(current_user: CurrentUser) -> User:
     return current_user
 
 
-# ─── RAG service dependencies ──────────────────────────────────────────────
+# ─── RAG service singletons ────────────────────────────────────────────────
+# Module-level instances: created once at startup, reused across requests.
+# boto3 clients inside each service are already lazy-loaded via @property.
+
+_s3_service = S3Service()
+_embedder = BedrockEmbedder()
+_reranker = BedrockReranker()
+_llm = BedrockLLM()
+_vector_store = VectorStoreService()
+_chunking_service = ChunkingService()
+_cleaning_service = CleaningService()
+_scraper = SitemapScraper()
+_local_guardrails = GuardrailsService()
+_bedrock_guardrails: BedrockGuardrailsService | None = (
+    BedrockGuardrailsService() if settings.USE_BEDROCK_GUARDRAILS else None
+)
+_rag_service = RAGService(
+    embedder=_embedder,
+    vector_store=_vector_store,
+    reranker=_reranker,
+    llm=_llm,
+    local_guardrails=_local_guardrails,
+    bedrock_guardrails=_bedrock_guardrails,
+)
+
+
+# ─── RAG service dependency providers ──────────────────────────────────────
+# Return the shared singleton. Routes can still override via
+# app.dependency_overrides[get_embedder] = lambda: mock in tests.
 
 
 def get_s3_service() -> S3Service:
-    return S3Service()
+    return _s3_service
 
 
 def get_embedder() -> BedrockEmbedder:
-    return BedrockEmbedder()
+    return _embedder
 
 
 def get_reranker() -> BedrockReranker:
-    return BedrockReranker()
+    return _reranker
 
 
 def get_llm() -> BedrockLLM:
-    return BedrockLLM()
+    return _llm
 
 
 def get_vector_store() -> VectorStoreService:
-    return VectorStoreService()
+    return _vector_store
 
 
 def get_chunking_service() -> ChunkingService:
-    return ChunkingService()
+    return _chunking_service
 
 
 def get_cleaning_service() -> CleaningService:
-    return CleaningService()
+    return _cleaning_service
 
 
 def get_scraper() -> SitemapScraper:
-    return SitemapScraper()
+    return _scraper
 
 
 def get_local_guardrails() -> GuardrailsService:
-    return GuardrailsService()
+    return _local_guardrails
 
 
 def get_bedrock_guardrails() -> BedrockGuardrailsService | None:
-    if not settings.USE_BEDROCK_GUARDRAILS:
-        return None
-    return BedrockGuardrailsService()
+    return _bedrock_guardrails
 
 
-def get_rag_service(
-    embedder: BedrockEmbedder = Depends(get_embedder),
-    vector_store: VectorStoreService = Depends(get_vector_store),
-    reranker: BedrockReranker = Depends(get_reranker),
-    llm: BedrockLLM = Depends(get_llm),
-    local_guardrails: GuardrailsService = Depends(get_local_guardrails),
-    bedrock_guardrails: BedrockGuardrailsService | None = Depends(
-        get_bedrock_guardrails
-    ),
-) -> RAGService:
-    return RAGService(
-        embedder=embedder,
-        vector_store=vector_store,
-        reranker=reranker,
-        llm=llm,
-        local_guardrails=local_guardrails,
-        bedrock_guardrails=bedrock_guardrails,
-    )
+def get_rag_service() -> RAGService:
+    return _rag_service
 
 
-# Typed dependency aliases for use in route signatures
+# ─── Typed dependency aliases for route signatures ─────────────────────────
+
 S3Dep = Annotated[S3Service, Depends(get_s3_service)]
 EmbedderDep = Annotated[BedrockEmbedder, Depends(get_embedder)]
 RerankerDep = Annotated[BedrockReranker, Depends(get_reranker)]
