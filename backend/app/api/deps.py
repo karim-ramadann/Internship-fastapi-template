@@ -12,6 +12,17 @@ from app.core import security
 from app.core.config import settings
 from app.core.db import engine
 from app.models import TokenPayload, User
+from app.services.bedrock.bedrock_guardrails import BedrockGuardrailsService
+from app.services.bedrock.embedder import BedrockEmbedder
+from app.services.bedrock.llm import BedrockLLM
+from app.services.bedrock.reranker import BedrockReranker
+from app.services.bedrock.s3 import S3Service
+from app.services.chunker import ChunkingService
+from app.services.cleaner import CleaningService
+from app.services.local_guardrails import GuardrailsService
+from app.services.rag_service import RAGService
+from app.services.scraper import SitemapScraper
+from app.services.vector_store import VectorStoreService
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -60,80 +71,58 @@ def get_current_active_superuser(current_user: CurrentUser) -> User:
 # ─── RAG service dependencies ──────────────────────────────────────────────
 
 
-def get_s3_service() -> "S3Service":  # noqa: F821
-    from app.services.bedrock.s3 import S3Service
-
+def get_s3_service() -> S3Service:
     return S3Service()
 
 
-def get_embedder() -> "BedrockEmbedder":  # noqa: F821
-    from app.services.bedrock.embedder import BedrockEmbedder
-
+def get_embedder() -> BedrockEmbedder:
     return BedrockEmbedder()
 
 
-def get_reranker() -> "BedrockReranker":  # noqa: F821
-    from app.services.bedrock.reranker import BedrockReranker
-
+def get_reranker() -> BedrockReranker:
     return BedrockReranker()
 
 
-def get_llm() -> "BedrockLLM":  # noqa: F821
-    from app.services.bedrock.llm import BedrockLLM
-
+def get_llm() -> BedrockLLM:
     return BedrockLLM()
 
 
-def get_vector_store() -> "VectorStoreService":  # noqa: F821
-    from app.services.vector_store import VectorStoreService
-
+def get_vector_store() -> VectorStoreService:
     return VectorStoreService()
 
 
-def get_chunking_service() -> "ChunkingService":  # noqa: F821
-    from app.services.chunker import ChunkingService
-
+def get_chunking_service() -> ChunkingService:
     return ChunkingService()
 
 
-def get_cleaning_service() -> "CleaningService":  # noqa: F821
-    from app.services.cleaner import CleaningService
-
+def get_cleaning_service() -> CleaningService:
     return CleaningService()
 
 
-def get_scraper() -> "SitemapScraper":  # noqa: F821
-    from app.services.scraper import SitemapScraper
-
+def get_scraper() -> SitemapScraper:
     return SitemapScraper()
 
 
-def get_local_guardrails() -> "GuardrailsService":  # noqa: F821
-    from app.services.local_guardrails import GuardrailsService
-
+def get_local_guardrails() -> GuardrailsService:
     return GuardrailsService()
 
 
-def get_bedrock_guardrails() -> "BedrockGuardrailsService | None":  # noqa: F821
+def get_bedrock_guardrails() -> BedrockGuardrailsService | None:
     if not settings.USE_BEDROCK_GUARDRAILS:
         return None
-    from app.services.bedrock.bedrock_guardrails import BedrockGuardrailsService
-
     return BedrockGuardrailsService()
 
 
 def get_rag_service(
-    embedder: "BedrockEmbedder" = Depends(get_embedder),  # noqa: F821
-    vector_store: "VectorStoreService" = Depends(get_vector_store),  # noqa: F821
-    reranker: "BedrockReranker" = Depends(get_reranker),  # noqa: F821
-    llm: "BedrockLLM" = Depends(get_llm),  # noqa: F821
-    local_guardrails: "GuardrailsService" = Depends(get_local_guardrails),  # noqa: F821
-    bedrock_guardrails: "BedrockGuardrailsService | None" = Depends(
+    embedder: BedrockEmbedder = Depends(get_embedder),
+    vector_store: VectorStoreService = Depends(get_vector_store),
+    reranker: BedrockReranker = Depends(get_reranker),
+    llm: BedrockLLM = Depends(get_llm),
+    local_guardrails: GuardrailsService = Depends(get_local_guardrails),
+    bedrock_guardrails: BedrockGuardrailsService | None = Depends(
         get_bedrock_guardrails
-    ),  # noqa: F821, E501
-) -> "RAGService":  # noqa: F821
-    from app.services.rag_service import RAGService
-
+    ),
+) -> RAGService:
     return RAGService(
         embedder=embedder,
         vector_store=vector_store,
@@ -145,17 +134,6 @@ def get_rag_service(
 
 
 # Typed dependency aliases for use in route signatures
-from app.services.bedrock.embedder import BedrockEmbedder  # noqa: E402
-from app.services.bedrock.llm import BedrockLLM  # noqa: E402
-from app.services.bedrock.reranker import BedrockReranker  # noqa: E402
-from app.services.bedrock.s3 import S3Service  # noqa: E402
-from app.services.chunker import ChunkingService  # noqa: E402
-from app.services.cleaner import CleaningService  # noqa: E402
-from app.services.local_guardrails import GuardrailsService  # noqa: E402
-from app.services.rag_service import RAGService  # noqa: E402
-from app.services.scraper import SitemapScraper  # noqa: E402
-from app.services.vector_store import VectorStoreService  # noqa: E402
-
 S3Dep = Annotated[S3Service, Depends(get_s3_service)]
 EmbedderDep = Annotated[BedrockEmbedder, Depends(get_embedder)]
 RerankerDep = Annotated[BedrockReranker, Depends(get_reranker)]
