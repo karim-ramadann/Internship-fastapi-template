@@ -9,6 +9,20 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type ChunkPublic = {
+    content: string;
+    url: string;
+    title: string;
+    chunk_index?: number;
+    id: string;
+    created_at?: (string | null);
+};
+
+export type ChunksPublic = {
+    data: Array<ChunkPublic>;
+    count: number;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -166,6 +180,18 @@ export type LoginRecoverPasswordHtmlContentData = {
 };
 
 export type LoginRecoverPasswordHtmlContentResponse = (string);
+
+export type PipelineRunScrapeResponse = (Message);
+
+export type PipelineRunCleanResponse = (Message);
+
+export type PipelineRunChunkResponse = (Message);
+
+export type PipelineRunEmbedResponse = (ChunksPublic);
+
+export type PipelinePipelineStatusResponse = ({
+    [key: string]: unknown;
+});
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;

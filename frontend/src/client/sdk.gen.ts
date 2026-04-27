@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PipelineRunScrapeResponse, PipelineRunCleanResponse, PipelineRunChunkResponse, PipelineRunEmbedResponse, PipelinePipelineStatusResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ItemsService {
     /**
@@ -209,6 +209,73 @@ export class LoginService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+}
+
+export class PipelineService {
+    /**
+     * Run Scrape
+     * Run the sitemap scraper and upload results to S3.
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static runScrape(): CancelablePromise<PipelineRunScrapeResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/pipeline/scrape'
+        });
+    }
+    
+    /**
+     * Run Clean
+     * Download scraped data from S3, clean it, and upload cleaned data.
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static runClean(): CancelablePromise<PipelineRunCleanResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/pipeline/clean'
+        });
+    }
+    
+    /**
+     * Run Chunk
+     * Download cleaned data from S3, chunk it, and upload chunked data.
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static runChunk(): CancelablePromise<PipelineRunChunkResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/pipeline/chunk'
+        });
+    }
+    
+    /**
+     * Run Embed
+     * Download chunked data from S3, embed, and store in vector DB.
+     * @returns ChunksPublic Successful Response
+     * @throws ApiError
+     */
+    public static runEmbed(): CancelablePromise<PipelineRunEmbedResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/pipeline/embed'
+        });
+    }
+    
+    /**
+     * Pipeline Status
+     * Get current pipeline status: chunk count, unique URLs, index health.
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static pipelineStatus(): CancelablePromise<PipelinePipelineStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/pipeline/status'
         });
     }
 }

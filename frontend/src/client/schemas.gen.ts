@@ -57,6 +57,69 @@ export const Body_login_login_access_tokenSchema = {
     title: 'Body_login-login_access_token'
 } as const;
 
+export const ChunkPublicSchema = {
+    properties: {
+        content: {
+            type: 'string',
+            title: 'Content'
+        },
+        url: {
+            type: 'string',
+            maxLength: 2048,
+            title: 'Url'
+        },
+        title: {
+            type: 'string',
+            maxLength: 512,
+            title: 'Title'
+        },
+        chunk_index: {
+            type: 'integer',
+            title: 'Chunk Index',
+            default: 0
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['content', 'url', 'title', 'id'],
+    title: 'ChunkPublic'
+} as const;
+
+export const ChunksPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ChunkPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ChunksPublic'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
