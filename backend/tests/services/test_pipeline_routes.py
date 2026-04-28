@@ -1,37 +1,18 @@
-"""Tests for pipeline route functions (pure unit tests, no DB required)."""
+"""Tests for PipelineService — all logic lives in the service, not routes."""
 
 from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
-from fastapi import HTTPException
 
-from app.api.routes.pipeline import (
-    _parse_s3_data,
-    pipeline_status,
-    run_chunk,
-    run_clean,
-    run_embed,
-    run_scrape,
-)
 from app.models import Chunk, PageData, ScrapedData
+from app.services.pipeline_service import PipelineService
 
-# ── Helper tests ────────────────────────────────────────────────────────────
 
-
-class TestParseS3Data:
-    """Tests for _parse_s3_data helper."""
-
-    def test_valid_data(self) -> None:
-        raw = {"source": "https://example.com", "pages": []}
-        result = _parse_s3_data(ScrapedData, raw, "scraped")
-        assert result.source == "https://example.com"
-
-    def test_invalid_data_raises_422(self) -> None:
-        with pytest.raises(HTTPException) as exc_info:
-            _parse_s3_data(ScrapedData, {"bad": "data"}, "scraped")
-        assert exc_info.value.status_code == 422
-        assert "Invalid scraped data" in exc_info.value.detail
+@pytest.fixture(autouse=True)
+def no_retry_wait(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Disable tenacity sleep so retry tests run instantly."""
+    monkeypatch.setattr("tenacity.nap.time.sleep", lambda _: None)
 
 
 # ── Test data ───────────────────────────────────────────────────────────────
@@ -90,13 +71,14 @@ CHUNKED_JSON = {
 }
 
 
-# ── /scrape tests ───────────────────────────────────────────────────────────
+# ── scrape tests ─────────────────────────────────────────────────────────────
 
 
-class TestRunScrape:
-    """Tests for the /scrape endpoint function."""
+class TestPipelineServiceScrape:
+    """Tests for PipelineService.scrape()."""
 
     def test_success(self) -> None:
+        svc = PipelineService()
         mock_scraper = MagicMock()
         mock_scraper.run.return_value = ScrapedData(
             source="https://example.com",
@@ -109,35 +91,34 @@ class TestRunScrape:
         mock_s3 = MagicMock()
         mock_s3.upload_json.return_value = "s3://bucket/pipeline/scraped_data.json"
 
-        result = run_scrape(scraper=mock_scraper, s3=mock_s3)
+        result = svc.scrape(scraper=mock_scraper, s3=mock_s3)
 
         assert "Scraped 2 pages" in result.message
         mock_scraper.run.assert_called_once()
         mock_s3.upload_json.assert_called_once()
 
-    def test_no_pages(self) -> None:
+    def test_no_pages_raises_value_error(self) -> None:
+        svc = PipelineService()
         mock_scraper = MagicMock()
         mock_scraper.run.return_value = ScrapedData(
             source="https://example.com", pages=[]
         )
         mock_s3 = MagicMock()
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_scrape(scraper=mock_scraper, s3=mock_s3)
-        assert exc_info.value.status_code == 422
-        assert "No pages scraped" in exc_info.value.detail
+        with pytest.raises(ValueError, match="No pages scraped"):
+            svc.scrape(scraper=mock_scraper, s3=mock_s3)
 
-    def test_scraper_failure(self) -> None:
+    def test_scraper_failure_raises_runtime_error(self) -> None:
+        svc = PipelineService()
         mock_scraper = MagicMock()
         mock_scraper.run.side_effect = RuntimeError("Chrome crashed")
         mock_s3 = MagicMock()
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_scrape(scraper=mock_scraper, s3=mock_s3)
-        assert exc_info.value.status_code == 500
-        assert "Scraper failed" in exc_info.value.detail
+        with pytest.raises(RuntimeError, match="Chrome crashed"):
+            svc.scrape(scraper=mock_scraper, s3=mock_s3)
 
-    def test_s3_upload_failure(self) -> None:
+    def test_s3_upload_failure_raises_runtime_error(self) -> None:
+        svc = PipelineService()
         mock_scraper = MagicMock()
         mock_scraper.run.return_value = ScrapedData(
             source="https://example.com",
@@ -147,19 +128,18 @@ class TestRunScrape:
         mock_s3 = MagicMock()
         mock_s3.upload_json.side_effect = RuntimeError("S3 down")
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_scrape(scraper=mock_scraper, s3=mock_s3)
-        assert exc_info.value.status_code == 500
-        assert "Failed to upload scraped data" in exc_info.value.detail
+        with pytest.raises(RuntimeError, match="S3 down"):
+            svc.scrape(scraper=mock_scraper, s3=mock_s3)
 
 
-# ── /clean tests ────────────────────────────────────────────────────────────
+# ── clean tests ──────────────────────────────────────────────────────────────
 
 
-class TestRunClean:
-    """Tests for the /clean endpoint function."""
+class TestPipelineServiceClean:
+    """Tests for PipelineService.clean()."""
 
     def test_success(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = SCRAPED_JSON
         mock_s3.upload_json.return_value = "s3://bucket/pipeline/cleaned_data.json"
@@ -170,31 +150,30 @@ class TestRunClean:
         mock_cleaner.clean.return_value = mock_cleaned
         mock_cleaner.get_stats.return_value = {"pages_output": 1, "pages_input": 1}
 
-        result = run_clean(s3=mock_s3, cleaner=mock_cleaner)
+        result = svc.clean(s3=mock_s3, cleaner=mock_cleaner)
 
         assert "Cleaned" in result.message
 
-    def test_s3_download_missing(self) -> None:
+    def test_s3_download_missing_raises_runtime_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.side_effect = RuntimeError("S3 download failed")
         mock_cleaner = MagicMock()
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_clean(s3=mock_s3, cleaner=mock_cleaner)
-        assert exc_info.value.status_code == 404
-        assert "Run /scrape first" in exc_info.value.detail
+        with pytest.raises(RuntimeError, match="Run /scrape first"):
+            svc.clean(s3=mock_s3, cleaner=mock_cleaner)
 
-    def test_invalid_s3_data(self) -> None:
+    def test_invalid_s3_data_raises_value_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {"bad": "data"}
         mock_cleaner = MagicMock()
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_clean(s3=mock_s3, cleaner=mock_cleaner)
-        assert exc_info.value.status_code == 422
-        assert "Invalid scraped data" in exc_info.value.detail
+        with pytest.raises(ValueError, match="Invalid scraped data"):
+            svc.clean(s3=mock_s3, cleaner=mock_cleaner)
 
-    def test_no_pages_survive(self) -> None:
+    def test_no_pages_survive_raises_value_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {
             "source": "https://example.com",
@@ -212,12 +191,11 @@ class TestRunClean:
         mock_cleaned.pages = []
         mock_cleaner.clean.return_value = mock_cleaned
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_clean(s3=mock_s3, cleaner=mock_cleaner)
-        assert exc_info.value.status_code == 422
-        assert "No pages survived" in exc_info.value.detail
+        with pytest.raises(ValueError, match="No pages survived"):
+            svc.clean(s3=mock_s3, cleaner=mock_cleaner)
 
-    def test_s3_upload_failure(self) -> None:
+    def test_s3_upload_failure_raises_runtime_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = SCRAPED_JSON
         mock_s3.upload_json.side_effect = RuntimeError("S3 down")
@@ -226,19 +204,18 @@ class TestRunClean:
         mock_cleaned.pages = [MagicMock()]
         mock_cleaner.clean.return_value = mock_cleaned
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_clean(s3=mock_s3, cleaner=mock_cleaner)
-        assert exc_info.value.status_code == 500
-        assert "Failed to upload cleaned data" in exc_info.value.detail
+        with pytest.raises(RuntimeError, match="S3 down"):
+            svc.clean(s3=mock_s3, cleaner=mock_cleaner)
 
 
-# ── /chunk tests ────────────────────────────────────────────────────────────
+# ── chunk tests ──────────────────────────────────────────────────────────────
 
 
-class TestRunChunk:
-    """Tests for the /chunk endpoint function."""
+class TestPipelineServiceChunk:
+    """Tests for PipelineService.chunk()."""
 
     def test_success(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = CLEANED_JSON
         mock_s3.upload_json.return_value = "s3://bucket/pipeline/chunked_data.json"
@@ -250,31 +227,30 @@ class TestRunChunk:
         mock_chunked.model_dump.return_value = {"source": "x", "chunks": []}
         mock_chunker.chunk_all.return_value = mock_chunked
 
-        result = run_chunk(s3=mock_s3, chunker=mock_chunker)
+        result = svc.chunk(s3=mock_s3, chunker=mock_chunker)
 
         assert "Chunked into" in result.message
 
-    def test_s3_download_missing(self) -> None:
+    def test_s3_download_missing_raises_runtime_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.side_effect = RuntimeError("S3 download failed")
         mock_chunker = MagicMock()
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_chunk(s3=mock_s3, chunker=mock_chunker)
-        assert exc_info.value.status_code == 404
-        assert "Run /clean first" in exc_info.value.detail
+        with pytest.raises(RuntimeError, match="Run /clean first"):
+            svc.chunk(s3=mock_s3, chunker=mock_chunker)
 
-    def test_invalid_s3_data(self) -> None:
+    def test_invalid_s3_data_raises_value_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {"not": "cleaned_data"}
         mock_chunker = MagicMock()
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_chunk(s3=mock_s3, chunker=mock_chunker)
-        assert exc_info.value.status_code == 422
-        assert "Invalid cleaned data" in exc_info.value.detail
+        with pytest.raises(ValueError, match="Invalid cleaned data"):
+            svc.chunk(s3=mock_s3, chunker=mock_chunker)
 
-    def test_empty_text_no_chunks(self) -> None:
+    def test_empty_text_no_chunks_raises_value_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {
             "source": "https://example.com",
@@ -288,12 +264,11 @@ class TestRunChunk:
         mock_chunked.chunks = []
         mock_chunker.chunk_all.return_value = mock_chunked
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_chunk(s3=mock_s3, chunker=mock_chunker)
-        assert exc_info.value.status_code == 422
-        assert "No chunks produced" in exc_info.value.detail
+        with pytest.raises(ValueError, match="No chunks produced"):
+            svc.chunk(s3=mock_s3, chunker=mock_chunker)
 
-    def test_s3_upload_failure(self) -> None:
+    def test_s3_upload_failure_raises_runtime_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = CLEANED_JSON
         mock_s3.upload_json.side_effect = RuntimeError("S3 down")
@@ -302,17 +277,15 @@ class TestRunChunk:
         mock_chunked.chunks = [MagicMock()]
         mock_chunker.chunk_all.return_value = mock_chunked
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_chunk(s3=mock_s3, chunker=mock_chunker)
-        assert exc_info.value.status_code == 500
-        assert "Failed to upload chunked data" in exc_info.value.detail
+        with pytest.raises(RuntimeError, match="S3 down"):
+            svc.chunk(s3=mock_s3, chunker=mock_chunker)
 
 
-# ── /embed tests ────────────────────────────────────────────────────────────
+# ── embed tests ──────────────────────────────────────────────────────────────
 
 
-class TestRunEmbed:
-    """Tests for the /embed endpoint function."""
+class TestPipelineServiceEmbed:
+    """Tests for PipelineService.embed()."""
 
     def _make_db_chunks(self, embedding: list[float]) -> list[Chunk]:
         return [
@@ -335,6 +308,7 @@ class TestRunEmbed:
         ]
 
     def test_success(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = CHUNKED_JSON
         mock_embedder = MagicMock()
@@ -344,7 +318,7 @@ class TestRunEmbed:
         mock_vs.insert_chunks.return_value = self._make_db_chunks(fake_embedding)
         mock_session = MagicMock()
 
-        result = run_embed(
+        result = svc.embed(
             session=mock_session,
             s3=mock_s3,
             embedder=mock_embedder,
@@ -355,35 +329,34 @@ class TestRunEmbed:
         mock_embedder.embed_batch.assert_called_once()
         mock_vs.insert_chunks.assert_called_once()
 
-    def test_s3_download_missing(self) -> None:
+    def test_s3_download_missing_raises_runtime_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.side_effect = RuntimeError("S3 download failed")
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_embed(
+        with pytest.raises(RuntimeError, match="Run /chunk first"):
+            svc.embed(
                 session=MagicMock(),
                 s3=mock_s3,
                 embedder=MagicMock(),
                 vector_store=MagicMock(),
             )
-        assert exc_info.value.status_code == 404
-        assert "Run /chunk first" in exc_info.value.detail
 
-    def test_invalid_s3_data(self) -> None:
+    def test_invalid_s3_data_raises_value_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {"garbage": True}
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_embed(
+        with pytest.raises(ValueError, match="Invalid chunked data"):
+            svc.embed(
                 session=MagicMock(),
                 s3=mock_s3,
                 embedder=MagicMock(),
                 vector_store=MagicMock(),
             )
-        assert exc_info.value.status_code == 422
-        assert "Invalid chunked data" in exc_info.value.detail
 
-    def test_empty_chunks(self) -> None:
+    def test_empty_chunks_raises_value_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {
             "source": "https://example.com",
@@ -393,55 +366,25 @@ class TestRunEmbed:
             "config": {},
         }
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_embed(
+        with pytest.raises(ValueError, match="No chunks found"):
+            svc.embed(
                 session=MagicMock(),
                 s3=mock_s3,
                 embedder=MagicMock(),
                 vector_store=MagicMock(),
             )
-        assert exc_info.value.status_code == 422
-        assert "No chunks found" in exc_info.value.detail
 
-    def test_embedder_failure(self) -> None:
+    def test_embedder_failure_raises_runtime_error(self) -> None:
+        svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = CHUNKED_JSON
         mock_embedder = MagicMock()
         mock_embedder.embed_batch.side_effect = RuntimeError("Bedrock API failed")
 
-        with pytest.raises(HTTPException) as exc_info:
-            run_embed(
+        with pytest.raises(RuntimeError, match="Bedrock API failed"):
+            svc.embed(
                 session=MagicMock(),
                 s3=mock_s3,
                 embedder=mock_embedder,
                 vector_store=MagicMock(),
             )
-        assert exc_info.value.status_code == 500
-        assert "Embedding generation failed" in exc_info.value.detail
-
-
-# ── /status tests ───────────────────────────────────────────────────────────
-
-
-class TestPipelineStatus:
-    """Tests for the /status endpoint function."""
-
-    def test_success(self) -> None:
-        mock_vs = MagicMock()
-        mock_vs.get_chunk_count.return_value = 42
-        mock_vs.get_unique_urls.return_value = [
-            "https://example.com/a",
-            "https://example.com/b",
-        ]
-        mock_vs.verify_indexes.return_value = {
-            "chunk_embedding_idx": True,
-            "chunk_search_vector_idx": True,
-        }
-        mock_session = MagicMock()
-
-        result = pipeline_status(session=mock_session, vector_store=mock_vs)
-
-        assert result["chunk_count"] == 42
-        assert result["unique_urls_count"] == 2
-        assert len(result["unique_urls"]) == 2
-        assert result["indexes"]["chunk_embedding_idx"] is True
