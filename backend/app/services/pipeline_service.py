@@ -10,6 +10,13 @@ from pydantic import ValidationError
 from sqlmodel import Session
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
+from app.exceptions.pipeline import (
+    EmbeddingError,
+    PipelineDataError,
+    S3DownloadError,
+    S3UploadError,
+    ScraperError,
+)
 from app.models import (
     ChunkCreate,
     ChunkedData,
@@ -39,15 +46,20 @@ class PipelineService:
         """Run the sitemap scraper and upload results to S3.
 
         Raises:
-            RuntimeError: If scraper fails or S3 upload fails.
-            ValueError: If no pages were scraped.
+            ScraperError: If scraper fails or returns no pages.
+            S3UploadError: If S3 upload fails after retries.
         """
         logger.info("Starting scrape pipeline step")
 
-        scraped_data = scraper.run()
+        try:
+            scraped_data = scraper.run()
+        except Exception as e:
+            raise ScraperError(f"Scraper failed: {e}") from e
 
-        if not scraped_data.pages:
-            raise ValueError("No pages scraped from sitemap")
+        try:
+            assert scraped_data.pages, "No pages scraped from sitemap"
+        except AssertionError as e:
+            raise ScraperError(str(e)) from e
 
         s3_uri = self._upload_step(s3, scraped_data, SCRAPED_KEY, "scraped")
 
@@ -64,8 +76,9 @@ class PipelineService:
         """Download scraped data from S3, clean it, and upload cleaned data.
 
         Raises:
-            RuntimeError: If S3 download/upload fails.
-            ValueError: If scraped data is invalid or no pages survive cleaning.
+            S3DownloadError: If scraped data not found in S3.
+            PipelineDataError: If scraped data is invalid or no pages survive.
+            S3UploadError: If S3 upload fails after retries.
         """
         logger.info("Starting clean pipeline step")
 
@@ -73,8 +86,10 @@ class PipelineService:
         scraped_data = self._parse(ScrapedData, raw, "scraped")
         cleaned_data = cleaner.clean(scraped_data)
 
-        if not cleaned_data.pages:
-            raise ValueError("No pages survived cleaning")
+        try:
+            assert cleaned_data.pages, "No pages survived cleaning"
+        except AssertionError as e:
+            raise PipelineDataError(str(e)) from e
 
         s3_uri = self._upload_step(s3, cleaned_data, CLEANED_KEY, "cleaned")
 
@@ -96,8 +111,9 @@ class PipelineService:
         """Download cleaned data from S3, chunk it, and upload chunked data.
 
         Raises:
-            RuntimeError: If S3 download/upload fails.
-            ValueError: If cleaned data is invalid or no chunks produced.
+            S3DownloadError: If cleaned data not found in S3.
+            PipelineDataError: If cleaned data is invalid or no chunks produced.
+            S3UploadError: If S3 upload fails after retries.
         """
         logger.info("Starting chunk pipeline step")
 
@@ -105,8 +121,10 @@ class PipelineService:
         cleaned_data = self._parse(CleanedData, raw, "cleaned")
         chunked_data = chunker.chunk_all(cleaned_data)
 
-        if not chunked_data.chunks:
-            raise ValueError("No chunks produced from cleaned data")
+        try:
+            assert chunked_data.chunks, "No chunks produced from cleaned data"
+        except AssertionError as e:
+            raise PipelineDataError(str(e)) from e
 
         s3_uri = self._upload_step(s3, chunked_data, CHUNKED_KEY, "chunked")
 
@@ -134,20 +152,27 @@ class PipelineService:
         """Download chunks from S3, embed, and store in vector DB.
 
         Raises:
-            RuntimeError: If S3 download or embedding fails.
-            ValueError: If chunked data is invalid or empty.
+            S3DownloadError: If chunked data not found in S3.
+            PipelineDataError: If chunked data is invalid or empty.
+            EmbeddingError: If Bedrock embedding fails.
         """
         logger.info("Starting embed pipeline step")
 
         raw = self._download_step(s3, CHUNKED_KEY, "chunked", "Run /chunk first")
         chunked_data = self._parse(ChunkedData, raw, "chunked")
 
-        if not chunked_data.chunks:
-            raise ValueError("No chunks found in chunked data")
+        try:
+            assert chunked_data.chunks, "No chunks found in chunked data"
+        except AssertionError as e:
+            raise PipelineDataError(str(e)) from e
 
         logger.info("Generating embeddings for %d chunks", len(chunked_data.chunks))
         texts = [chunk.content for chunk in chunked_data.chunks]
-        embeddings = embedder.embed_batch(texts)
+
+        try:
+            embeddings = embedder.embed_batch(texts)
+        except (RuntimeError, ValueError) as e:
+            raise EmbeddingError(f"Embedding generation failed: {e}") from e
 
         chunk_creates = [
             ChunkCreate(
@@ -167,7 +192,7 @@ class PipelineService:
         return ChunksPublic(data=db_chunks, count=len(db_chunks))
 
     def _download_step(self, s3: S3Service, key: str, label: str, hint: str) -> dict:
-        """Download JSON from S3 with up to 3 retries, raising RuntimeError on failure."""
+        """Download JSON from S3 with up to 3 retries, raising S3DownloadError on failure."""
 
         @retry(
             retry=retry_if_exception_type(RuntimeError),
@@ -181,7 +206,7 @@ class PipelineService:
         try:
             return _attempt()
         except RuntimeError as e:
-            raise RuntimeError(
+            raise S3DownloadError(
                 f"{label.capitalize()} data not found in S3. {hint}."
             ) from e
 
@@ -200,12 +225,15 @@ class PipelineService:
                 s3_key=key,
             )
 
-        return _attempt()
+        try:
+            return _attempt()
+        except RuntimeError as e:
+            raise S3UploadError(f"Failed to upload {label} data to S3: {e}") from e
 
     def _parse(self, model: type, raw: dict, label: str) -> object:
-        """Parse raw dict into a Pydantic model, raising ValueError on bad data."""
+        """Parse raw dict into a Pydantic model, raising PipelineDataError on bad data."""
         try:
             return model(**raw)
         except ValidationError as e:
             logger.error("Invalid %s data from S3: %s", label, e)
-            raise ValueError(f"Invalid {label} data in S3: {e}") from e
+            raise PipelineDataError(f"Invalid {label} data in S3: {e}") from e

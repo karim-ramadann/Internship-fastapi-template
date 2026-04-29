@@ -5,6 +5,13 @@ from uuid import uuid4
 
 import pytest
 
+from app.exceptions.pipeline import (
+    EmbeddingError,
+    PipelineDataError,
+    S3DownloadError,
+    S3UploadError,
+    ScraperError,
+)
 from app.models import Chunk, PageData, ScrapedData
 from app.services.pipeline_service import PipelineService
 
@@ -97,7 +104,7 @@ class TestPipelineServiceScrape:
         mock_scraper.run.assert_called_once()
         mock_s3.upload_json.assert_called_once()
 
-    def test_no_pages_raises_value_error(self) -> None:
+    def test_no_pages_raises_scraper_error(self) -> None:
         svc = PipelineService()
         mock_scraper = MagicMock()
         mock_scraper.run.return_value = ScrapedData(
@@ -105,19 +112,19 @@ class TestPipelineServiceScrape:
         )
         mock_s3 = MagicMock()
 
-        with pytest.raises(ValueError, match="No pages scraped"):
+        with pytest.raises(ScraperError, match="No pages scraped"):
             svc.scrape(scraper=mock_scraper, s3=mock_s3)
 
-    def test_scraper_failure_raises_runtime_error(self) -> None:
+    def test_scraper_failure_raises_scraper_error(self) -> None:
         svc = PipelineService()
         mock_scraper = MagicMock()
         mock_scraper.run.side_effect = RuntimeError("Chrome crashed")
         mock_s3 = MagicMock()
 
-        with pytest.raises(RuntimeError, match="Chrome crashed"):
+        with pytest.raises(ScraperError, match="Chrome crashed"):
             svc.scrape(scraper=mock_scraper, s3=mock_s3)
 
-    def test_s3_upload_failure_raises_runtime_error(self) -> None:
+    def test_s3_upload_failure_raises_s3_upload_error(self) -> None:
         svc = PipelineService()
         mock_scraper = MagicMock()
         mock_scraper.run.return_value = ScrapedData(
@@ -128,7 +135,7 @@ class TestPipelineServiceScrape:
         mock_s3 = MagicMock()
         mock_s3.upload_json.side_effect = RuntimeError("S3 down")
 
-        with pytest.raises(RuntimeError, match="S3 down"):
+        with pytest.raises(S3UploadError):
             svc.scrape(scraper=mock_scraper, s3=mock_s3)
 
 
@@ -154,25 +161,25 @@ class TestPipelineServiceClean:
 
         assert "Cleaned" in result.message
 
-    def test_s3_download_missing_raises_runtime_error(self) -> None:
+    def test_s3_download_missing_raises_s3_download_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.side_effect = RuntimeError("S3 download failed")
         mock_cleaner = MagicMock()
 
-        with pytest.raises(RuntimeError, match="Run /scrape first"):
+        with pytest.raises(S3DownloadError, match="Run /scrape first"):
             svc.clean(s3=mock_s3, cleaner=mock_cleaner)
 
-    def test_invalid_s3_data_raises_value_error(self) -> None:
+    def test_invalid_s3_data_raises_pipeline_data_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {"bad": "data"}
         mock_cleaner = MagicMock()
 
-        with pytest.raises(ValueError, match="Invalid scraped data"):
+        with pytest.raises(PipelineDataError, match="Invalid scraped data"):
             svc.clean(s3=mock_s3, cleaner=mock_cleaner)
 
-    def test_no_pages_survive_raises_value_error(self) -> None:
+    def test_no_pages_survive_raises_pipeline_data_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {
@@ -191,10 +198,10 @@ class TestPipelineServiceClean:
         mock_cleaned.pages = []
         mock_cleaner.clean.return_value = mock_cleaned
 
-        with pytest.raises(ValueError, match="No pages survived"):
+        with pytest.raises(PipelineDataError, match="No pages survived"):
             svc.clean(s3=mock_s3, cleaner=mock_cleaner)
 
-    def test_s3_upload_failure_raises_runtime_error(self) -> None:
+    def test_s3_upload_failure_raises_s3_upload_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = SCRAPED_JSON
@@ -204,7 +211,7 @@ class TestPipelineServiceClean:
         mock_cleaned.pages = [MagicMock()]
         mock_cleaner.clean.return_value = mock_cleaned
 
-        with pytest.raises(RuntimeError, match="S3 down"):
+        with pytest.raises(S3UploadError):
             svc.clean(s3=mock_s3, cleaner=mock_cleaner)
 
 
@@ -231,25 +238,25 @@ class TestPipelineServiceChunk:
 
         assert "Chunked into" in result.message
 
-    def test_s3_download_missing_raises_runtime_error(self) -> None:
+    def test_s3_download_missing_raises_s3_download_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.side_effect = RuntimeError("S3 download failed")
         mock_chunker = MagicMock()
 
-        with pytest.raises(RuntimeError, match="Run /clean first"):
+        with pytest.raises(S3DownloadError, match="Run /clean first"):
             svc.chunk(s3=mock_s3, chunker=mock_chunker)
 
-    def test_invalid_s3_data_raises_value_error(self) -> None:
+    def test_invalid_s3_data_raises_pipeline_data_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {"not": "cleaned_data"}
         mock_chunker = MagicMock()
 
-        with pytest.raises(ValueError, match="Invalid cleaned data"):
+        with pytest.raises(PipelineDataError, match="Invalid cleaned data"):
             svc.chunk(s3=mock_s3, chunker=mock_chunker)
 
-    def test_empty_text_no_chunks_raises_value_error(self) -> None:
+    def test_empty_text_no_chunks_raises_pipeline_data_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {
@@ -264,10 +271,10 @@ class TestPipelineServiceChunk:
         mock_chunked.chunks = []
         mock_chunker.chunk_all.return_value = mock_chunked
 
-        with pytest.raises(ValueError, match="No chunks produced"):
+        with pytest.raises(PipelineDataError, match="No chunks produced"):
             svc.chunk(s3=mock_s3, chunker=mock_chunker)
 
-    def test_s3_upload_failure_raises_runtime_error(self) -> None:
+    def test_s3_upload_failure_raises_s3_upload_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = CLEANED_JSON
@@ -277,7 +284,7 @@ class TestPipelineServiceChunk:
         mock_chunked.chunks = [MagicMock()]
         mock_chunker.chunk_all.return_value = mock_chunked
 
-        with pytest.raises(RuntimeError, match="S3 down"):
+        with pytest.raises(S3UploadError):
             svc.chunk(s3=mock_s3, chunker=mock_chunker)
 
 
@@ -329,12 +336,12 @@ class TestPipelineServiceEmbed:
         mock_embedder.embed_batch.assert_called_once()
         mock_vs.insert_chunks.assert_called_once()
 
-    def test_s3_download_missing_raises_runtime_error(self) -> None:
+    def test_s3_download_missing_raises_s3_download_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.side_effect = RuntimeError("S3 download failed")
 
-        with pytest.raises(RuntimeError, match="Run /chunk first"):
+        with pytest.raises(S3DownloadError, match="Run /chunk first"):
             svc.embed(
                 session=MagicMock(),
                 s3=mock_s3,
@@ -342,12 +349,12 @@ class TestPipelineServiceEmbed:
                 vector_store=MagicMock(),
             )
 
-    def test_invalid_s3_data_raises_value_error(self) -> None:
+    def test_invalid_s3_data_raises_pipeline_data_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {"garbage": True}
 
-        with pytest.raises(ValueError, match="Invalid chunked data"):
+        with pytest.raises(PipelineDataError, match="Invalid chunked data"):
             svc.embed(
                 session=MagicMock(),
                 s3=mock_s3,
@@ -355,7 +362,7 @@ class TestPipelineServiceEmbed:
                 vector_store=MagicMock(),
             )
 
-    def test_empty_chunks_raises_value_error(self) -> None:
+    def test_empty_chunks_raises_pipeline_data_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = {
@@ -366,7 +373,7 @@ class TestPipelineServiceEmbed:
             "config": {},
         }
 
-        with pytest.raises(ValueError, match="No chunks found"):
+        with pytest.raises(PipelineDataError, match="No chunks found"):
             svc.embed(
                 session=MagicMock(),
                 s3=mock_s3,
@@ -374,14 +381,14 @@ class TestPipelineServiceEmbed:
                 vector_store=MagicMock(),
             )
 
-    def test_embedder_failure_raises_runtime_error(self) -> None:
+    def test_embedder_failure_raises_embedding_error(self) -> None:
         svc = PipelineService()
         mock_s3 = MagicMock()
         mock_s3.download_json.return_value = CHUNKED_JSON
         mock_embedder = MagicMock()
         mock_embedder.embed_batch.side_effect = RuntimeError("Bedrock API failed")
 
-        with pytest.raises(RuntimeError, match="Bedrock API failed"):
+        with pytest.raises(EmbeddingError, match="Embedding generation failed"):
             svc.embed(
                 session=MagicMock(),
                 s3=mock_s3,
