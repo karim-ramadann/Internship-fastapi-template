@@ -314,6 +314,108 @@ export const PrivateUserCreateSchema = {
     title: 'PrivateUserCreate'
 } as const;
 
+export const QueryRequestSchema = {
+    properties: {
+        question: {
+            type: 'string',
+            maxLength: 500,
+            minLength: 3,
+            title: 'Question'
+        },
+        mode: {
+            type: 'string',
+            pattern: '^(vector|hybrid|rerank)$',
+            title: 'Mode',
+            default: 'rerank'
+        },
+        top_k: {
+            type: 'integer',
+            maximum: 20,
+            minimum: 1,
+            title: 'Top K',
+            default: 5
+        }
+    },
+    type: 'object',
+    required: ['question'],
+    title: 'QueryRequest',
+    description: 'Request schema for RAG query endpoint.'
+} as const;
+
+export const QueryResultSchema = {
+    properties: {
+        query: {
+            type: 'string',
+            title: 'Query'
+        },
+        answer: {
+            type: 'string',
+            title: 'Answer'
+        },
+        sources: {
+            items: {
+                '$ref': '#/components/schemas/RetrievedChunk'
+            },
+            type: 'array',
+            title: 'Sources'
+        },
+        model: {
+            type: 'string',
+            title: 'Model',
+            default: ''
+        },
+        tokens_used: {
+            type: 'integer',
+            title: 'Tokens Used',
+            default: 0
+        },
+        latency: {
+            type: 'number',
+            title: 'Latency',
+            default: 0
+        },
+        blocked: {
+            type: 'boolean',
+            title: 'Blocked',
+            default: false
+        }
+    },
+    type: 'object',
+    required: ['query', 'answer'],
+    title: 'QueryResult',
+    description: 'Response schema for RAG query endpoint.'
+} as const;
+
+export const RetrievedChunkSchema = {
+    properties: {
+        content: {
+            type: 'string',
+            title: 'Content'
+        },
+        url: {
+            type: 'string',
+            title: 'Url'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        chunk_index: {
+            type: 'integer',
+            title: 'Chunk Index'
+        },
+        similarity: {
+            type: 'number',
+            minimum: 0,
+            title: 'Similarity'
+        }
+    },
+    type: 'object',
+    required: ['content', 'url', 'title', 'chunk_index', 'similarity'],
+    title: 'RetrievedChunk',
+    description: 'A chunk retrieved from similarity search.'
+} as const;
+
 export const TokenSchema = {
     properties: {
         access_token: {
