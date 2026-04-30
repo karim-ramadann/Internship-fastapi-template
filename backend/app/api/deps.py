@@ -20,6 +20,7 @@ from app.services.bedrock.s3 import S3Service
 from app.services.chunker import ChunkingService
 from app.services.cleaner import CleaningService
 from app.services.local_guardrails import GuardrailsService
+from app.services.pipeline_service import PipelineService
 from app.services.rag_service import RAGService
 from app.services.scraper import SitemapScraper
 from app.services.vector_store import VectorStoreService
@@ -92,6 +93,7 @@ _rag_service = RAGService(
     local_guardrails=_local_guardrails,
     bedrock_guardrails=_bedrock_guardrails,
 )
+_pipeline_service = PipelineService()
 
 
 # ─── RAG service dependency providers ──────────────────────────────────────
@@ -143,6 +145,10 @@ def get_rag_service() -> RAGService:
     return _rag_service
 
 
+def get_pipeline_service() -> PipelineService:
+    return _pipeline_service
+
+
 # ─── Typed dependency aliases for route signatures ─────────────────────────
 
 S3Dep = Annotated[S3Service, Depends(get_s3_service)]
@@ -155,3 +161,4 @@ CleanerDep = Annotated[CleaningService, Depends(get_cleaning_service)]
 ScraperDep = Annotated[SitemapScraper, Depends(get_scraper)]
 GuardrailsDep = Annotated[GuardrailsService, Depends(get_local_guardrails)]
 RAGServiceDep = Annotated[RAGService, Depends(get_rag_service)]
+PipelineDep = Annotated[PipelineService, Depends(get_pipeline_service)]
