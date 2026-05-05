@@ -17,6 +17,7 @@ from app.exceptions.pipeline import (
     S3UploadError,
     ScraperError,
 )
+from app.exceptions.rag import RAGError, RAGValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,23 @@ async def embedding_error_handler(
     request: Request, exc: EmbeddingError
 ) -> JSONResponse:
     logger.error("Embedding error on %s: %s", request.url.path, exc)
+    return JSONResponse(status_code=500, content={"detail": str(exc)})
+
+
+# ─── RAG exception handlers ───────────────────────────────────────────────
+
+
+@app.exception_handler(RAGValidationError)
+async def rag_validation_error_handler(
+    request: Request, exc: RAGValidationError
+) -> JSONResponse:
+    logger.warning("RAG validation error on %s: %s", request.url.path, exc)
+    return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
+@app.exception_handler(RAGError)
+async def rag_error_handler(request: Request, exc: RAGError) -> JSONResponse:
+    logger.error("RAG error on %s: %s", request.url.path, exc)
     return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 

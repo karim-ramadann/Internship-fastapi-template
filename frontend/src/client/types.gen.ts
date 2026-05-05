@@ -66,6 +66,39 @@ export type PrivateUserCreate = {
     is_verified?: boolean;
 };
 
+/**
+ * Request schema for RAG query endpoint.
+ */
+export type QueryRequest = {
+    question: string;
+    mode?: string;
+    top_k?: number;
+};
+
+/**
+ * Response schema for RAG query endpoint.
+ */
+export type QueryResult = {
+    query: string;
+    answer: string;
+    sources?: Array<RetrievedChunk>;
+    model?: string;
+    tokens_used?: number;
+    latency?: number;
+    blocked?: boolean;
+};
+
+/**
+ * A chunk retrieved from similarity search.
+ */
+export type RetrievedChunk = {
+    content: string;
+    url: string;
+    title: string;
+    chunk_index: number;
+    similarity: number;
+};
+
 export type Token = {
     access_token: string;
     token_type?: string;
@@ -198,6 +231,16 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type RagQueryData = {
+    requestBody: QueryRequest;
+};
+
+export type RagQueryResponse = (QueryResult);
+
+export type RagStatsResponse = ({
+    [key: string]: unknown;
+});
 
 export type UsersReadUsersData = {
     limit?: number;
