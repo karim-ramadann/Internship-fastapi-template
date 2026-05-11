@@ -26,3 +26,10 @@ build-push-backend: build-backend push-backend
 
 prek-run-all:
 	uv run prek run --all-files
+
+# Generate frontend TypeScript SDK from backend OpenAPI schema
+generate-client:
+	cd backend && uv run python -c "import app.main; import json; print(json.dumps(app.main.app.openapi()))" > ../openapi.json
+	mv openapi.json frontend/
+	bun run --filter frontend generate-client
+	bun run lint

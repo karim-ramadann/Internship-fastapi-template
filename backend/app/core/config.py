@@ -104,7 +104,7 @@ class Settings(BaseSettings):
         "eu-central-1"  # Frankfurt - has all models including Cohere Rerank
     )
     BEDROCK_EMBEDDING_MODEL: str = "amazon.titan-embed-text-v2:0"
-    BEDROCK_LLM_MODEL: str = "anthropic.claude-3-haiku-20240307-v1:0"
+    BEDROCK_LLM_MODEL: str = "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
     EMBEDDING_DIMENSIONS: int = 1024
 
     # AWS S3

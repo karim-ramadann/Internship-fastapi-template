@@ -81,7 +81,7 @@ class TestBedrockLLM:
 
     def test_uses_config_defaults(self) -> None:
         llm = BedrockLLM()
-        assert llm.model_id == "anthropic.claude-3-haiku-20240307-v1:0"
+        assert llm.model_id == "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
         assert llm.region == "eu-central-1"
 
     def test_invoke_handles_malformed_response(self) -> None:
