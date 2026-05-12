@@ -134,6 +134,7 @@ class Settings(BaseSettings):
     # Chunking settings
     CHUNK_SIZE: int = 1000  # Target chunk size in characters
     CHUNK_OVERLAP: int = 200  # Overlap between consecutive chunks
+    CHUNK_STRATEGY: str = "sentence"  # "recursive" (legacy) or "sentence"
 
     # RAG retrieval settings
     RETRIEVAL_TOP_K: int = 5  # Number of chunks to retrieve
